@@ -1,0 +1,48 @@
+export const proposalFields = [
+  { key: 'position_id', label: 'Position ID' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'long_short_none', label: 'Direction' },
+  { key: 'target_price', label: 'Target Price' },
+  { key: 'stop_loss', label: 'Stop Loss' },
+  { key: 'leverage', label: 'Leverage' },
+  { key: 'margin_percent', label: 'Margin %' },
+  { key: 'entry_price_min', label: 'Entry Price Min' },
+  { key: 'entry_price_max', label: 'Entry Price Max' },
+  { key: 'entry_time_from', label: 'Entry Time From' },
+  { key: 'entry_time_to', label: 'Entry Time To' },
+  { key: 'exit_time_from', label: 'Exit Time From' },
+  { key: 'exit_time_to', label: 'Exit Time To' },
+  { key: 'position_duration', label: 'Position Duration' },
+  { key: 'position_strategy', label: 'Position Strategy' },
+  { key: 'confidence', label: 'Confidence' },
+  { key: 'model_used', label: 'Model Used' },
+  { key: 'reason_entry', label: 'Reason Entry' },
+  { key: 'reason_abstain', label: 'Reason Abstain' },
+  { key: 'rationale_tags', label: 'Rationale Tags' },
+]
+
+export const pass2Fields = [
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'long_short_none', label: 'Direction' },
+  { key: 'target_price', label: 'Target Price' },
+  { key: 'stop_loss', label: 'Stop Loss' },
+  { key: 'leverage', label: 'Leverage' },
+  { key: 'margin_percent', label: 'Margin %' },
+  { key: 'entry_price_min', label: 'Entry Price Min' },
+  { key: 'entry_price_max', label: 'Entry Price Max' },
+  { key: 'entry_time_from', label: 'Entry Time From' },
+  { key: 'entry_time_to', label: 'Entry Time To' },
+  { key: 'exit_time_from', label: 'Exit Time From' },
+  { key: 'reason_entry', label: 'Reason Entry' },
+  { key: 'rationale_tags', label: 'Rationale Tags' },
+  { key: 'model_used', label: 'Model Used' },
+]
+
+export const liquidationFields = [
+  { key: 'timestamp_utc', label: 'Timestamp' },
+  { key: 'liquidity_bias', label: 'Liquidity Bias' },
+  { key: 'key_liquidity_levels', label: 'Key Liquidity Levels' },
+  { key: 'eta_summary', label: 'ETA Summary' },
+  { key: 'notes', label: 'Notes' },
+  { key: 'warnings', label: 'Warnings' },
+]

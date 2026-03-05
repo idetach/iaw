@@ -1,0 +1,13 @@
+services:
+  agent-charts-signal:
+    build:
+      context: .
+      dockerfile: cloudrun/agent_charts_signal/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - cloudrun/agent_charts_signal/.env
+    environment:
+      PORT: "8080"
+    volumes:
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:ro

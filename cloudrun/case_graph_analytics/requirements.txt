@@ -1,0 +1,6 @@
+neo4j>=5.20
+google-cloud-storage>=2.14
+pydantic>=2.6
+pydantic-settings>=2.2
+python-dotenv>=1.0
+openai>=1.0
