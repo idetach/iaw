@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  Box,
   Button,
   HStack,
   Input,
@@ -68,9 +69,59 @@ function formToPayload(form) {
   return payload
 }
 
-export default function TradeFormCard({ caseId, proposal, existingTrade }) {
+function TradeExecutionBanner({ exec }) {
+  if (!exec) return null
+  const params = exec.order_params || {}
+  const result = exec.order_result || {}
+  const side = params.side || result.side
+  const sideColor = side === 'Buy' ? 'green.300' : side === 'Sell' ? 'red.300' : 'gray.400'
+  const orderId = result.orderId || result.order_id || exec.order_result?.result?.orderId
+  const executedAt = exec.executed_at ? new Date(exec.executed_at).toLocaleString() : null
+  return (
+    <Box
+      border="1px solid"
+      borderColor={side === 'Buy' ? 'green.700' : side === 'Sell' ? 'red.800' : 'gray.700'}
+      borderRadius="md"
+      px={3}
+      py={2}
+      bg={side === 'Buy' ? 'rgba(72,187,120,0.07)' : side === 'Sell' ? 'rgba(252,129,129,0.07)' : 'transparent'}
+    >
+      <HStack justify="space-between" wrap="wrap" spacing={3}>
+        <HStack spacing={3}>
+          <Text fontSize="11px" fontWeight="700" color={sideColor} textTransform="uppercase">
+            {side || '—'} {params.orderType || ''}
+          </Text>
+          {params.qty && (
+            <Text fontSize="11px" color="gray.400">qty {params.qty}</Text>
+          )}
+          {params.price && (
+            <Text fontSize="11px" color="gray.400">@ {params.price}</Text>
+          )}
+          {params.stopLoss && (
+            <Text fontSize="11px" color="orange.300">SL {params.stopLoss}</Text>
+          )}
+          {params.takeProfit && (
+            <Text fontSize="11px" color="blue.300">TP {params.takeProfit}</Text>
+          )}
+        </HStack>
+        <HStack spacing={3}>
+          {orderId && (
+            <Text fontSize="10px" color="gray.500" fontFamily="mono">{String(orderId).slice(0, 12)}…</Text>
+          )}
+          {executedAt && (
+            <Text fontSize="10px" color="gray.500">{executedAt}</Text>
+          )}
+        </HStack>
+      </HStack>
+    </Box>
+  )
+}
+
+export default function TradeFormCard({ caseId, proposal, existingTrade, tradeExecution }) {
   const saveTrade = useAppStore((s) => s.saveTrade)
   const savingTrade = useAppStore((s) => s.savingTrade)
+  const executeTrade = useAppStore((s) => s.executeTrade)
+  const executingTrade = useAppStore((s) => s.executingTrade)
   const timezone = useAppStore((s) => s.settings.timezone)
   const [isEditing, setIsEditing] = useState(false)
   const toast = useToast()
@@ -114,9 +165,26 @@ export default function TradeFormCard({ caseId, proposal, existingTrade }) {
     }
   }
 
+  const onExecute = async () => {
+    if (!caseId) {
+      return
+    }
+    const ok = window.confirm(
+      `Execute trade from proposal_validated.json for case ${caseId}?\n\nThis will place a real order on Bybit.`
+    )
+    if (!ok) return
+    try {
+      await executeTrade(caseId)
+      toast({ status: 'success', title: 'Trade executed', description: 'Order placed via agent_trading' })
+    } catch (error) {
+      toast({ status: 'error', title: 'Execution failed', description: error.message })
+    }
+  }
+
   return (
     <SectionCard title="Trade Form">
       <VStack align="stretch" spacing={3}>
+        <TradeExecutionBanner exec={tradeExecution} />
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2}>
           {proposalFields.map((field) => {
             const value = form[field.key] ?? ''
@@ -192,6 +260,15 @@ export default function TradeFormCard({ caseId, proposal, existingTrade }) {
         <HStack wrap="wrap">
           <Button
             variant="action"
+            onClick={onExecute}
+            isLoading={executingTrade}
+            isDisabled={!caseId || !proposal?.long_short_none || proposal?.long_short_none === 'NONE'}
+            title="Place order on Bybit from proposal_validated.json via agent_trading"
+          >
+            execute
+          </Button>
+          <Button
+            variant="ghostline"
             onClick={() => {
               setFromSource(proposal || {})
               setIsEditing(true)

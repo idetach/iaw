@@ -69,6 +69,7 @@ export default function CasesPage() {
   const liquidation = currentCaseDetail?.liquidation_heatmap_observations || null
   const pass1 = currentCaseDetail?.pass1_observations || null
   const trade = currentCaseDetail?.trade || null
+  const tradeExecution = currentCaseDetail?.trade_execution || null
   const enabledTimeframes = settings?.chartsEnabled?.timeframes || []
   const selectedCaseSummary = useMemo(() => {
     for (const group of caseGroups || []) {
@@ -253,7 +254,7 @@ export default function CasesPage() {
             <SectionCard title="proposal_validated.json">
               <DataPairs fields={proposalFields} source={proposal || {}} />
             </SectionCard>
-            <TradeFormCard caseId={activeCaseId} proposal={proposal || {}} existingTrade={trade} />
+            <TradeFormCard caseId={activeCaseId} proposal={proposal || {}} existingTrade={trade} tradeExecution={tradeExecution} />
           </div>
 
           <div className="case-grid">

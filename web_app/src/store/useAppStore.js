@@ -136,6 +136,7 @@ export const useAppStore = create(
       newlyCreatedCaseId: null,
       loadingMeta: false,
       savingTrade: false,
+      executingTrade: false,
       generatingCase: false,
       resizingWindowsDismissTVBanner: false,
       lastError: null,
@@ -354,6 +355,18 @@ export const useAppStore = create(
           set({ savingTrade: false })
         } catch (error) {
           set({ savingTrade: false, lastError: error.message })
+          throw error
+        }
+      },
+      async executeTrade(caseId, params = {}) {
+        set({ executingTrade: true, lastError: null })
+        try {
+          const result = await api.executeTrade(caseId, params)
+          await get().loadCase(caseId, { force: true })
+          set({ executingTrade: false })
+          return result
+        } catch (error) {
+          set({ executingTrade: false, lastError: error.message })
           throw error
         }
       },

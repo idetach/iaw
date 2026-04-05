@@ -36,6 +36,7 @@ class CaptureRequest(BaseModel):
     liquidation_heatmap_time_horizon_hours: int | None = Field(default=None, ge=1, le=168)
     http_timeout_seconds: float | None = Field(default=None, ge=5.0, le=900.0)
     app_window: str | None = None
+    debug_env: bool | None = None
 
 
 class ResizeWindowsDismissTVBannerRequest(BaseModel):

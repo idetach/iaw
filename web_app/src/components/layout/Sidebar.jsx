@@ -22,6 +22,7 @@ export default function Sidebar() {
   const casesLoading = useAppStore((s) => s.casesLoading)
   const casesLoadingMore = useAppStore((s) => s.casesLoadingMore)
   const loadMoreCases = useAppStore((s) => s.loadMoreCases)
+  const caseDetailsById = useAppStore((s) => s.caseDetailsById)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -31,6 +32,28 @@ export default function Sidebar() {
   const width = sidebarCollapsed ? '58px' : '296px'
 
   const grouped = useMemo(() => caseGroups || [], [caseGroups])
+
+  function tradeStateDot(item) {
+    const detail = caseDetailsById?.[item.case_id]
+    const hasExecution = Boolean(detail?.trade_execution)
+    const direction = item.direction || detail?.proposal_validated?.long_short_none
+    if (!direction || direction === 'NONE') return null
+    const color = direction === 'LONG' ? '#48BB78' : '#FC8181'
+    const opacity = hasExecution ? 1 : 0.35
+    return (
+      <Box
+        as="span"
+        display="inline-block"
+        w="7px"
+        h="7px"
+        borderRadius="full"
+        bg={color}
+        opacity={opacity}
+        flexShrink={0}
+        title={hasExecution ? `${direction} (executed)` : `${direction} (proposal)`}
+      />
+    )
+  }
 
   return (
     <Box
@@ -116,6 +139,7 @@ export default function Sidebar() {
                         ) : (
                           <HStack w="full" justify="space-between">
                             <HStack spacing={2} minW={0} flex="1">
+                              {tradeStateDot(item)}
                               <Text fontSize="xs" noOfLines={1} fontWeight="600">
                                 {item.symbol || item.case_id.slice(0, 8)}
                               </Text>

@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8080'
+const AGENT_TRADING_URL = import.meta.env.VITE_AGENT_TRADING_URL || 'http://127.0.0.1:8082'
 
 async function request(path, options = {}) {
   const { timeoutMs: rawTimeoutMs, ...fetchOptions } = options
@@ -39,8 +40,20 @@ async function request(path, options = {}) {
   return res.json()
 }
 
+async function traderRequest(path, options = {}) {
+  const mergedHeaders = { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  const res = await fetch(`${AGENT_TRADING_URL}${path}`, { ...options, headers: mergedHeaders })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `agent_trading request failed: ${res.status}`)
+  }
+  if (res.status === 204) return null
+  return res.json()
+}
+
 export const api = {
   baseUrl: API_BASE_URL,
+  agentTradingUrl: AGENT_TRADING_URL,
   streamUrl() {
     return `${API_BASE_URL}/v1/cases/stream`
   },
@@ -101,5 +114,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     })
+  },
+  executeTrade(caseId, params = {}) {
+    return traderRequest(`/v1/trader/cases/${caseId}/execute`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  },
+  executeManualTrade(caseId, payload) {
+    return traderRequest(`/v1/trader/cases/${caseId}/manual`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  getTradeExecution(caseId) {
+    return traderRequest(`/v1/trader/cases/${caseId}/trade`)
   },
 }

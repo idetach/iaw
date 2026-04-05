@@ -697,6 +697,7 @@ async def get_case(case_id: str = ApiPath(..., min_length=6)) -> JSONResponse:
         name="liquidation_heatmap_observations.json",
     )
     trade_obj = _try_read_case_json(client=client, bucket=settings.gcs_bucket, paths=paths, name="trade.json")
+    trade_execution_obj = _try_read_case_json(client=client, bucket=settings.gcs_bucket, paths=paths, name="trade_execution.json")
     generation_status_obj = _read_generation_status(client=client, bucket=settings.gcs_bucket, paths=paths)
     generation_state = _derive_generation_state(
         settings=settings,
@@ -715,6 +716,7 @@ async def get_case(case_id: str = ApiPath(..., min_length=6)) -> JSONResponse:
         "llm_raw_liquidation_heatmap": liquidation_obj,
         "liquidation_heatmap_observations": liquidation_observations_obj,
         "trade": trade_obj,
+        "trade_execution": trade_execution_obj,
         "generation_status": generation_status_obj,
         "generation_state": generation_state,
         "chart_urls": _signed_chart_urls(client=client, settings=settings, paths=paths),
