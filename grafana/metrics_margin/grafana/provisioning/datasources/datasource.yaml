@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: Metrics Margin Postgres
+    uid: metrics-margin-postgres
+    type: postgres
+    access: proxy
+    isDefault: true
+    url: timescaledb:5432
+    user: ${POSTGRES_USER}
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+    jsonData:
+      database: ${POSTGRES_DB}
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: true

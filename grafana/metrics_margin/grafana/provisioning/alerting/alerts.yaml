@@ -1,0 +1,71 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: telegram-iaw
+        type: telegram
+        settings:
+          bottoken: $TG_BOT_TOKEN
+          chatid: $TG_CHAT_ID
+          parse_mode: HTML
+          message: |
+            {{ range .Alerts }}
+            <b>{{ .Status | toUpper }}</b>: {{ .Labels.alertname }}
+            {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+            {{ end }}
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: telegram
+    group_by:
+      - grafana_folder
+      - alertname
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: metrics_margin_alerts
+    folder: metrics_margin
+    interval: 5m
+    rules:
+      - uid: config_changed_recently
+        title: Margin config changed recently
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: metrics-margin-postgres
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            model:
+              datasource:
+                type: postgres
+                uid: metrics-margin-postgres
+              editorMode: code
+              format: table
+              rawSql: |
+                SELECT NOW() AS time, COUNT(*)::double precision AS value
+                FROM config_change_events
+                WHERE collected_at >= NOW() - INTERVAL '1 hour'
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            model:
+              expression: $A > 0
+              type: math
+              refId: C
+        noDataState: OK
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: Margin tier or risk configuration changed in the last hour.
+        labels:
+          severity: info
