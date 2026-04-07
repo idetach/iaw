@@ -14,6 +14,7 @@ __pycache__
 dist/
 build/
 README_*
+backups
 *.log
 .DS_Store
 Thumbs.db

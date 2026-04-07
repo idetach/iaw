@@ -35,6 +35,7 @@ services:
       POSTGRES_PORT: 5432
     volumes:
       - ./collector/app:/app/app:ro
+      - ./collector/backups:/app/backups
       - ./sql:/app/sql:ro
 
   grafana:

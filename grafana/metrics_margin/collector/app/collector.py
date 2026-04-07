@@ -27,6 +27,8 @@ class CollectorService:
             bot_token=settings.tg_iaw_metrics_alerts_bot_token,
             chat_id=settings.tg_iaw_metrics_alerts_bot_chat_id,
         )
+        self._corr_24h_points = max(2, round((24 * 60 * 60) / self.settings.inventory_poll_seconds))
+        self._corr_7d_points = max(2, round((7 * 24 * 60 * 60) / self.settings.inventory_poll_seconds))
 
     def discover_margin_pairs(self, *, force_api: bool = False) -> None:
         if not force_api and not self._discovered_symbols:
@@ -657,7 +659,13 @@ class CollectorService:
         points = merged.to_dict("records")
         self.log.debug("derived_metrics_merged asset=%s symbol=%s merged_points=%d", asset, symbol, len(points))
 
-        derived_rows = build_derived_metric_rows(asset=asset, symbol=symbol, points=points)
+        derived_rows = build_derived_metric_rows(
+            asset=asset,
+            symbol=symbol,
+            points=points,
+            corr_24h_points=self._corr_24h_points,
+            corr_7d_points=self._corr_7d_points,
+        )
         if derived_rows:
             self.db.upsert_derived_metrics(derived_rows)
             latest_stress = next((row for row in reversed(derived_rows) if row["metric_name"] == "stress_proxy_zinv"), None)
@@ -674,4 +682,11 @@ class CollectorService:
                         "metadata": {"label": regime},
                     }
                 ]
+            )
+            self.log.debug(
+                "derived_metrics_written asset=%s symbol=%s corr_24h_points=%d corr_7d_points=%d",
+                asset,
+                symbol,
+                self._corr_24h_points,
+                self._corr_7d_points,
             )

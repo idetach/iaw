@@ -1,0 +1,299 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+        "enable": false,
+        "hide": false,
+        "iconColor": "rgba(255, 96, 96, 1)",
+        "name": "Config Changes",
+        "rawQuery": true,
+        "rawSql": "SELECT collected_at AS time, summary AS text, COALESCE(asset, symbol, source_table) AS tags FROM config_change_events WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}' OR asset IS NULL) AND ('${symbol:raw}' = '__all' OR symbol = '${symbol:raw}' OR symbol IS NULL) ORDER BY collected_at",
+        "target": {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT collected_at AS time, summary AS text, COALESCE(asset, symbol, source_table) AS tags FROM config_change_events WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}' OR asset IS NULL) AND ('${symbol:raw}' = '__all' OR symbol = '${symbol:raw}' OR symbol IS NULL) ORDER BY collected_at",
+          "refId": "Anno"
+        }
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "id": null,
+  "links": [{"asDropdown": false, "icon": "apps", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "Inventory", "tooltip": "Switch to full dashboard view", "type": "link", "url": "/d/metrics-margin-main"}],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 4,
+      "panels": [],
+      "title": "Money Flow Lite",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "green"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "id": 5,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT close_time AS time, taker_buy_base_volume::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' ORDER BY close_time", "refId": "A"}],
+      "title": "Buy Volume (5m candle) Latest",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "red"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "id": 6,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT close_time AS time, GREATEST(0, (volume - taker_buy_base_volume))::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' ORDER BY close_time", "refId": "A"}],
+      "title": "Sell Volume (5m candle) Latest",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "id": 7,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT close_time AS time, CASE WHEN volume > 0 THEN (taker_buy_base_volume / volume)::double precision ELSE NULL END AS value FROM spot_klines WHERE symbol = '${symbol:raw}' ORDER BY close_time", "refId": "A"}],
+      "title": "Buy Share % (5m candle) Latest",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "id": 8,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT close_time AS time, (2 * taker_buy_base_volume - volume)::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' ORDER BY close_time", "refId": "A"}],
+      "title": "Net Taker Flow (5m candle) Latest",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "green"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 5},
+      "id": 13,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, SUM(taker_buy_base_volume)::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Buy Volume Selected Range Sum",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "red"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 5},
+      "id": 14,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, SUM(GREATEST(0, volume - taker_buy_base_volume))::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Sell Volume Selected Range Sum",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 5},
+      "id": 15,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, CASE WHEN SUM(volume) > 0 THEN (SUM(taker_buy_base_volume) / SUM(volume))::double precision ELSE NULL END AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Buy Share % Selected Range Weighted Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 5},
+      "id": 16,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, SUM(2 * taker_buy_base_volume - volume)::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Net Taker Flow Selected Range Sum",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "green"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 9},
+      "id": 17,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, AVG(taker_buy_base_volume)::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Buy Volume Selected Range Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "red"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 9},
+      "id": 18,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, AVG(GREATEST(0, volume - taker_buy_base_volume))::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Sell Volume Selected Range Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 9},
+      "id": 19,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "WITH candle_shares AS ( SELECT CASE WHEN volume > 0 THEN (taker_buy_base_volume / volume)::double precision ELSE NULL END AS buy_share_pct FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ) SELECT NOW() AS time, AVG(buy_share_pct)::double precision AS value FROM candle_shares", "refId": "A"}],
+      "title": "Buy Share % Selected Range Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 9},
+      "id": 20,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT NOW() AS time, AVG(2 * taker_buy_base_volume - volume)::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time)", "refId": "A"}],
+      "title": "Net Taker Flow Selected Range Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "lineWidth": 1, "showPoints": "never", "fillOpacity": 70}, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "buy_volume"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Volume"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "sell_volume"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Volume"}, {"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 13},
+      "id": 9,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, taker_buy_base_volume::double precision AS buy_volume, -GREATEST(0, (volume - taker_buy_base_volume))::double precision AS sell_volume FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"}],
+      "title": "Buy vs Sell Volume",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 1, "showPoints": "never", "fillOpacity": 75, "stacking": {"mode": "normal", "group": "buyshare"}}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": [{"matcher": {"id": "byName", "options": "buy_share_pct"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Share"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "sell_share_pct"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Share"}, {"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 13},
+      "id": 10,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, CASE WHEN volume > 0 THEN (taker_buy_base_volume / volume)::double precision ELSE NULL END AS buy_share_pct, CASE WHEN volume > 0 THEN ((volume - taker_buy_base_volume) / volume)::double precision ELSE NULL END AS sell_share_pct FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"}],
+      "title": "Buy Share % vs Sell Share %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "net_taker_flow"}, "properties": [{"id": "color", "value": {"fixedColor": "#8c8c8c", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "rolling_net_flow"}, "properties": [{"id": "color", "value": {"fixedColor": "yellow", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 21},
+      "id": 11,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH flows AS ( SELECT close_time, (2 * taker_buy_base_volume - volume)::double precision AS net_taker_flow FROM spot_klines WHERE symbol = '${symbol:raw}' ) SELECT close_time AS time, net_taker_flow, SUM(net_taker_flow) OVER (ORDER BY close_time ROWS BETWEEN 23 PRECEDING AND CURRENT ROW) AS rolling_net_flow FROM flows WHERE $__timeFilter(close_time) ORDER BY close_time", "refId": "A"}],
+      "title": "Net Taker Flow & Rolling Net Flow",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "net_taker_flow"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Net Flow"}, {"id": "custom.lineWidth", "value": 2}, {"id": "color", "value": {"fixedColor": "#8c8c8c", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "inventory_delta"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory Δ"}, {"id": "custom.lineWidth", "value": 2}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "flow_inventory_divergence"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Divergence"}, {"id": "custom.lineWidth", "value": 3}, {"id": "color", "value": {"fixedColor": "purple", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 29},
+      "id": 12,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH k AS ( SELECT close_time, (2 * taker_buy_base_volume - volume)::double precision AS net_taker_flow FROM spot_klines WHERE symbol = '${symbol:raw}' ), i AS ( SELECT collected_at, available_inventory::double precision AS inventory, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ), joined AS ( SELECT k.close_time, k.net_taker_flow, COALESCE(i.inventory - i.prev_inventory, 0) AS inventory_delta FROM k LEFT JOIN LATERAL ( SELECT collected_at, inventory, prev_inventory FROM i WHERE collected_at <= k.close_time ORDER BY collected_at DESC LIMIT 1 ) i ON TRUE ) SELECT close_time AS time, net_taker_flow, inventory_delta, (net_taker_flow - inventory_delta) AS flow_inventory_divergence FROM joined WHERE $__timeFilter(close_time) ORDER BY close_time", "refId": "A"}],
+      "title": "Flow vs Inventory Divergence (Multi-axis)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 37},
+      "id": 21,
+      "panels": [],
+      "title": "PIBRBS",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "inventory"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory"}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "borrow_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Borrow \u0394"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "repay_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Repay \u0394"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "buy_sell_pct_change"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Buy/Sell %"}, {"id": "custom.lineWidth", "value": 1}, {"id": "color", "value": {"fixedColor": "#8c8c8c", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 38},
+      "id": 1,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "B"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, -GREATEST(0, prev_inv - inv) AS borrow_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "C"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, GREATEST(0, inv - prev_inv) AS repay_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "D"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH ratios AS ( SELECT close_time, CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END AS ratio, LAG( CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END ) OVER (ORDER BY close_time) AS prev_ratio FROM spot_klines WHERE symbol = '${symbol:raw}' ) SELECT close_time AS time, CASE WHEN prev_ratio > 0 THEN ((ratio - prev_ratio) / prev_ratio * 100) ELSE NULL END AS buy_sell_pct_change FROM ratios WHERE $__timeFilter(close_time) ORDER BY close_time", "refId": "E"}
+      ],
+      "title": "Combined: Price, Inventory, Borrow/Repay Proxy, Buy/Sell Change",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "buy_sell_pct_change"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Buy/Sell %"}, {"id": "custom.lineWidth", "value": 1}, {"id": "color", "value": {"fixedColor": "#8c8c8c", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 48},
+      "id": 2,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH ratios AS ( SELECT close_time, CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END AS ratio, LAG( CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END ) OVER (ORDER BY close_time) AS prev_ratio FROM spot_klines WHERE symbol = '${symbol:raw}' ) SELECT close_time AS time, CASE WHEN prev_ratio > 0 THEN ((ratio - prev_ratio) / prev_ratio * 100) ELSE NULL END AS buy_sell_pct_change FROM ratios WHERE $__timeFilter(close_time) ORDER BY close_time", "refId": "B"}
+      ],
+      "title": "Price & Buy/Sell Change",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "inventory"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory"}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "borrow_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Borrow \u0394"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "repay_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Repay \u0394"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 56},
+      "id": 3,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "B"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, -GREATEST(0, prev_inv - inv) AS borrow_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "C"},
+        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, GREATEST(0, inv - prev_inv) AS repay_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "D"}
+      ],
+      "title": "Price, Inventory & Borrow/Repay Proxy",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["binance", "margin", "pibrbs"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": true, "text": "BTC", "value": "BTC"},
+        "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+        "definition": "SELECT DISTINCT base_asset AS __text, base_asset AS __value FROM margin_pairs WHERE is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') UNION SELECT DISTINCT asset, asset FROM margin_available_inventory_snapshots WHERE asset IS NOT NULL ORDER BY 1",
+        "includeAll": false,
+        "label": "asset",
+        "multi": false,
+        "name": "asset",
+        "options": [],
+        "query": "SELECT DISTINCT base_asset AS __text, base_asset AS __value FROM margin_pairs WHERE is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') UNION SELECT DISTINCT asset, asset FROM margin_available_inventory_snapshots WHERE asset IS NOT NULL ORDER BY 1",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": "BTCUSDC", "value": "BTCUSDC"},
+        "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+        "definition": "SELECT symbol AS __text, symbol AS __value FROM margin_pairs WHERE base_asset = '$asset' AND is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') ORDER BY quote_asset ASC LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "label": "symbol",
+        "multi": false,
+        "name": "symbol",
+        "options": [],
+        "query": "SELECT symbol AS __text, symbol AS __value FROM margin_pairs WHERE base_asset = '$asset' AND is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') ORDER BY quote_asset ASC LIMIT 1",
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-7d", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "metrics_margin - PIBRBS",
+  "uid": "metrics-margin-pibrbs",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from decimal import Decimal
 from typing import Any
 
 import pandas as pd
@@ -20,10 +19,11 @@ def compute_stress_proxy(series: pd.Series, lookback: int = 288) -> pd.Series:
 def compute_normalized_to_100(series: pd.Series) -> pd.Series:
     if series.empty:
         return series
-    first = series.iloc[0]
-    if first == 0:
+    non_zero = series[series != 0]
+    if non_zero.empty:
         return pd.Series([100.0] * len(series), index=series.index)
-    return (series / first) * 100.0
+    base = non_zero.iloc[0]
+    return (series / base) * 100.0
 
 
 def compute_returns(series: pd.Series) -> pd.Series:
@@ -42,7 +42,7 @@ def compute_rolling_correlation(
 ) -> pd.Series:
     price_returns = compute_returns(price_series)
     inventory_changes = compute_inventory_change(inventory_series)
-    return price_returns.rolling(window=points, min_periods=max(3, points // 4)).corr(inventory_changes)
+    return price_returns.rolling(window=points, min_periods=points).corr(inventory_changes)
 
 
 def infer_stress_regime(value: float | None) -> str:
@@ -60,6 +60,8 @@ def build_derived_metric_rows(
     asset: str,
     symbol: str,
     points: list[dict[str, Any]],
+    corr_24h_points: int,
+    corr_7d_points: int,
 ) -> list[dict[str, Any]]:
     if len(points) < 2:
         return []
@@ -70,10 +72,20 @@ def build_derived_metric_rows(
     frame["close_price"] = frame["close_price"].astype(float)
 
     stress = compute_stress_proxy(frame["available_inventory"])
-    corr_24h = compute_rolling_correlation(frame["close_price"], frame["available_inventory"], points=24)
-    corr_7d = compute_rolling_correlation(frame["close_price"], frame["available_inventory"], points=7 * 24)
+    corr_24h = compute_rolling_correlation(
+        frame["close_price"],
+        frame["available_inventory"],
+        points=corr_24h_points,
+    )
+    corr_7d = compute_rolling_correlation(
+        frame["close_price"],
+        frame["available_inventory"],
+        points=corr_7d_points,
+    )
     normalized_price = compute_normalized_to_100(frame["close_price"])
     normalized_inventory = compute_normalized_to_100(frame["available_inventory"])
+    corr_24h_min_periods = max(3, corr_24h_points // 4)
+    corr_7d_min_periods = max(3, corr_7d_points // 4)
 
     rows: list[dict[str, Any]] = []
     for idx, collected_at in enumerate(frame["collected_at"]):
@@ -95,7 +107,11 @@ def build_derived_metric_rows(
                     "metric_name": "rolling_corr_price_vs_inventory_24h",
                     "metric_value": None if pd.isna(corr_24h.iloc[idx]) else float(corr_24h.iloc[idx]),
                     "window_label": "24h",
-                    "metadata": {"formula": "corr(pct_change(price), pct_change(inventory))"},
+                    "metadata": {
+                        "formula": "corr(pct_change(price), pct_change(inventory))",
+                        "window_points": corr_24h_points,
+                        "min_periods": corr_24h_min_periods,
+                    },
                 },
                 {
                     "collected_at": collected_at.to_pydatetime(),
@@ -104,7 +120,11 @@ def build_derived_metric_rows(
                     "metric_name": "rolling_corr_price_vs_inventory_7d",
                     "metric_value": None if pd.isna(corr_7d.iloc[idx]) else float(corr_7d.iloc[idx]),
                     "window_label": "7d",
-                    "metadata": {"formula": "corr(pct_change(price), pct_change(inventory))"},
+                    "metadata": {
+                        "formula": "corr(pct_change(price), pct_change(inventory))",
+                        "window_points": corr_7d_points,
+                        "min_periods": corr_7d_min_periods,
+                    },
                 },
                 {
                     "collected_at": collected_at.to_pydatetime(),
