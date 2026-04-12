@@ -764,7 +764,7 @@ def main() -> None:
         help="Capture and upload liquidation heatmap image and enable separate liquidation_heatmap LLM pass.",
     )
     parser.add_argument("--liquidation-heatmap-window-owner", type=str, default=None)
-    parser.add_argument("--liquidation-heatmap-window-title", type=str, default="coinglass")
+    parser.add_argument("--liquidation-heatmap-window-title", type=str, default="Liquidation Heatmap")
     parser.add_argument("--liquidation-heatmap-crop-x", type=int, default=None)
     parser.add_argument("--liquidation-heatmap-crop-y", type=int, default=None)
     parser.add_argument("--liquidation-heatmap-crop-w", type=int, default=None)

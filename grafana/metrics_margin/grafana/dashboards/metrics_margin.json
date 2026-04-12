@@ -127,7 +127,7 @@
     },
     {
       "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 3, "showPoints": "never"}, "unit": "short"}, "overrides": []},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 3, "showPoints": "never"}, "color": {"fixedColor": "orange", "mode": "fixed"}, "unit": "short"}, "overrides": []},
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
       "id": 10,
       "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
@@ -137,7 +137,7 @@
     },
     {
       "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "lineWidth": 1, "showPoints": "never", "fillOpacity": 0}, "color": {"fixedColor": "green", "mode": "fixed"}, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "positive"}, "properties": [{"id": "custom.fillOpacity", "value": 80}]}, {"matcher": {"id": "byName", "options": "negative"}, "properties": [{"id": "custom.fillOpacity", "value": 0}]}]},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "lineWidth": 1, "showPoints": "never", "fillOpacity": 0}, "color": {"fixedColor": "orange", "mode": "fixed"}, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "positive"}, "properties": [{"id": "custom.fillOpacity", "value": 80}]}, {"matcher": {"id": "byName", "options": "negative"}, "properties": [{"id": "custom.fillOpacity", "value": 0}]}]},
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
       "id": 11,
       "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
@@ -168,7 +168,7 @@
     },
     {
       "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "normalized_price_100_x10"}, "properties": [{"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "normalized_inventory_100"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}]},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "normalized_price_100_x10"}, "properties": [{"id": "color", "value": {"fixedColor": "dark-green", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "normalized_inventory_100"}, "properties": [{"id": "color", "value": {"fixedColor": "dark-orange", "mode": "fixed"}}]}]},
       "gridPos": {"h": 8, "w": 24, "x": 0, "y": 23},
       "id": 14,
       "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
@@ -181,7 +181,7 @@
     },
     {
       "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "inventory"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory"}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "borrow_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Borrow Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "repay_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Repay Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "buy_sell_pct_change"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Buy/Sell %"}, {"id": "custom.lineWidth", "value": 1}, {"id": "color", "value": {"fixedColor": "#8c8c8c", "mode": "fixed"}}]}]},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "inventory"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory"}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "borrow_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Borrow Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "purple", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "repay_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Repay Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "buy_sell_pct_change"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Buy/Sell %"}, {"id": "custom.lineWidth", "value": 1}, {"id": "color", "value": {"fixedColor": "#afafaf", "mode": "fixed"}}]}]},
       "gridPos": {"h": 8, "w": 24, "x": 0, "y": 31},
       "id": 21,
       "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},

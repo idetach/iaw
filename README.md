@@ -111,6 +111,11 @@ python mac/agent_charts_screen/list_windows.py \
 python mac/agent_charts_screen/list_windows.py \
   | jq -r '.[] | select(.owner_name | test("Safari|Chrome|Arc|Brave"; "i")) | "\(.owner_name)\t\(.window_name)"' \
   | less -S
+
+# 5) Search all browsers with "coinglass" in the title
+python mac/agent_charts_screen/list_windows.py \
+  | jq -r '.[] | select(.owner_name | test("Safari|Chrome|Arc|Brave"; "i")) | "\(.owner_name)\t\(.window_name)"' \
+  | grep -i coinglass
 ```
 
 ### 4) Capture → upload → analyze

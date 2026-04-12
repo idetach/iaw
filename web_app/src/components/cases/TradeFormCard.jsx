@@ -124,6 +124,7 @@ export default function TradeFormCard({ caseId, proposal, existingTrade, tradeEx
   const executingTrade = useAppStore((s) => s.executingTrade)
   const timezone = useAppStore((s) => s.settings.timezone)
   const [isEditing, setIsEditing] = useState(false)
+  const [depositAmount, setDepositAmount] = useState('10000')
   const toast = useToast()
 
   const initialState = useMemo(() => {
@@ -180,6 +181,48 @@ export default function TradeFormCard({ caseId, proposal, existingTrade, tradeEx
       toast({ status: 'error', title: 'Execution failed', description: error.message })
     }
   }
+
+  const riskRewardCalc = useMemo(() => {
+    const entryPrice = Number(form.entry_price_min) || Number(form.entry_price_max) || 0
+    const stopLoss = Number(form.stop_loss) || 0
+    const targetPrice = Number(form.target_price) || 0
+    const leverage = Number(form.leverage) || 1
+    const marginPercent = Number(form.margin_percent) || 0
+    const deposit = Number(depositAmount) || 0
+
+    if (!entryPrice || !deposit || marginPercent <= 0) {
+      return { riskPercent: 0, riskAmount: 0, rewardPercent: 0, rewardAmount: 0 }
+    }
+
+    const positionSize = (deposit * marginPercent) / 100
+    const positionValue = positionSize * leverage
+
+    let riskPercentOfDeposit = 0
+    let rewardPercentOfDeposit = 0
+    let riskAmount = 0
+    let rewardAmount = 0
+
+    if (stopLoss > 0) {
+      const stopLossPriceDiff = Math.abs(entryPrice - stopLoss)
+      const priceMovePercent = (stopLossPriceDiff / entryPrice) * 100
+      riskPercentOfDeposit = priceMovePercent * leverage * (marginPercent / 100)
+      riskAmount = positionValue * (priceMovePercent / 100)
+    }
+
+    if (targetPrice > 0) {
+      const targetPriceDiff = Math.abs(targetPrice - entryPrice)
+      const priceMovePercent = (targetPriceDiff / entryPrice) * 100
+      rewardPercentOfDeposit = priceMovePercent * leverage * (marginPercent / 100)
+      rewardAmount = positionValue * (priceMovePercent / 100)
+    }
+
+    return {
+      riskPercent: riskPercentOfDeposit.toFixed(2),
+      riskAmount: riskAmount.toFixed(2),
+      rewardPercent: rewardPercentOfDeposit.toFixed(2),
+      rewardAmount: rewardAmount.toFixed(2),
+    }
+  }, [form.entry_price_min, form.entry_price_max, form.stop_loss, form.target_price, form.leverage, form.margin_percent, depositAmount])
 
   return (
     <SectionCard title="Trade Form">
@@ -256,6 +299,71 @@ export default function TradeFormCard({ caseId, proposal, existingTrade, tradeEx
             )
           })}
         </SimpleGrid>
+
+        <Box
+          border="1px solid"
+          borderColor="brand.border"
+          borderRadius="md"
+          px={3}
+          py={3}
+          bg="rgba(246, 224, 94, 0.03)"
+        >
+          <VStack align="stretch" spacing={3}>
+            <Text fontSize="12px" fontWeight="600" color="brand.accent">
+              Risk / Reward Estimation
+            </Text>
+            <SimpleGrid columns={{ base: 1, md: 4 }} spacing={3}>
+              <VStack align="stretch" spacing={1}>
+                <Text fontSize="11px" color="gray.500">
+                  Deposit Amount
+                </Text>
+                <Input
+                  size="sm"
+                  type="number"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  borderColor="brand.border"
+                  bg="#111"
+                  placeholder="10000"
+                />
+              </VStack>
+              <VStack align="stretch" spacing={1}>
+                <Text fontSize="11px" color="blue.300">
+                  Position Size
+                </Text>
+                <Text fontSize="13px" fontWeight="600" color="blue.200">
+                  ${(((Number(depositAmount) || 0) * (Number(form.margin_percent) || 0)) / 100).toFixed(2)}
+                </Text>
+              </VStack>
+              <VStack align="stretch" spacing={1}>
+                <Text fontSize="11px" color="orange.300">
+                  Risk (Stop Loss)
+                </Text>
+                <HStack spacing={2}>
+                  <Text fontSize="13px" fontWeight="600" color="orange.200">
+                    {riskRewardCalc.riskPercent}%
+                  </Text>
+                  <Text fontSize="12px" color="gray.400">
+                    (${riskRewardCalc.riskAmount})
+                  </Text>
+                </HStack>
+              </VStack>
+              <VStack align="stretch" spacing={1}>
+                <Text fontSize="11px" color="green.300">
+                  Reward (Target Price)
+                </Text>
+                <HStack spacing={2}>
+                  <Text fontSize="13px" fontWeight="600" color="green.200">
+                    {riskRewardCalc.rewardPercent}%
+                  </Text>
+                  <Text fontSize="12px" color="gray.400">
+                    (${riskRewardCalc.rewardAmount})
+                  </Text>
+                </HStack>
+              </VStack>
+            </SimpleGrid>
+          </VStack>
+        </Box>
 
         <HStack wrap="wrap">
           <Button
