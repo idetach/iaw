@@ -30,7 +30,7 @@ docker run --env-file cloudrun/bybit_trading/.env -p 8081:8080 bybit_trading
 ```bash
 gcloud run deploy bybit-trading \
   --source . \
-  --region us-central1 \
+  --region europe-west1-b \
   --allow-unauthenticated \
   --set-env-vars BYBIT_API_KEY=...,BYBIT_API_SECRET=...,BYBIT_TESTNET=false
 ```

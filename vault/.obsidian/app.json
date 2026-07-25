@@ -1,0 +1,8 @@
+{
+  "attachmentFolderPath": "99-meta/attachments",
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "showUnsupportedFiles": true,
+  "promptDelete": false
+}

@@ -34,7 +34,7 @@ docker run --env-file cloudrun/agent_trading/.env -p 8082:8080 agent_trading
 ```bash
 gcloud run deploy agent-trading \
   --source . \
-  --region us-central1 \
+  --region europe-west1-b \
   --allow-unauthenticated \
   --set-env-vars GCS_BUCKET=...,CASES_PREFIX=cases,BYBIT_TRADING_URL=https://bybit-trading-xxx.run.app
 ```

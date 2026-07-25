@@ -13,7 +13,7 @@ __pycache__
 *.egg-info/
 dist/
 build/
-README_*
+# README_*
 backups
 *.log
 .DS_Store
