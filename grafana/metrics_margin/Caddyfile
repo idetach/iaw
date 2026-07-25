@@ -1,0 +1,11 @@
+# ──────────────────────────────────────────────────────────────────────
+# Caddyfile — Reverse proxy for Grafana
+#
+# IP-only mode (HTTP):  :80         ← current
+# Domain + HTTPS mode:  grafana.example.com  ← replace :80 with your domain
+#
+# See README_DOMAIN.md for HTTPS setup instructions.
+# ──────────────────────────────────────────────────────────────────────
+:80 {
+    reverse_proxy grafana:3000
+}

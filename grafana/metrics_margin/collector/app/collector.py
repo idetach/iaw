@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -12,7 +13,7 @@ from app.db import Database
 from app.exceptions import BinancePermissionError
 from app.exchanges import BinanceAdapter
 from app.telegram import TelegramNotifier
-from app.transforms import build_derived_metric_rows, infer_stress_regime
+from app.transforms import build_derived_metric_rows, compute_isolated_capacity, infer_stress_regime
 from app.utils import json_fingerprint, to_decimal, utc_now
 
 
@@ -23,6 +24,7 @@ class CollectorService:
         self.adapter = adapter
         self.log = logging.getLogger("metrics_margin.collector")
         self._discovered_symbols: dict[str, str] = {}  # symbol -> base_asset
+        self._cached_quote_assets: set[str] = set()
         self.tg = TelegramNotifier(
             bot_token=settings.tg_iaw_metrics_alerts_bot_token,
             chat_id=settings.tg_iaw_metrics_alerts_bot_chat_id,
@@ -95,6 +97,8 @@ class CollectorService:
             self._discovered_symbols = discovered
 
         self.log.info("tracked_symbols count=%d", len(self._discovered_symbols))
+        self._refresh_quote_assets()
+        self.log.info("tracked_quote_assets count=%d assets=%s", len(self._cached_quote_assets), self._cached_quote_assets)
 
     @property
     def tracked_symbols(self) -> dict[str, str]:
@@ -105,6 +109,20 @@ class CollectorService:
     @property
     def tracked_assets(self) -> list[str]:
         return list(set(self.tracked_symbols.values()))
+
+    def _refresh_quote_assets(self) -> set[str]:
+        """Refresh cached quote assets from discovered pairs (e.g. USDC, USDT, FDUSD)."""
+        try:
+            pairs = self.db.get_tracked_pairs()
+            self._cached_quote_assets = {p["quote_asset"] for p in pairs if p.get("quote_asset")}
+        except Exception:
+            pass
+        return self._cached_quote_assets
+
+    @property
+    def all_inventory_assets(self) -> list[str]:
+        """Base assets + quote assets — full set for inventory polling."""
+        return list(set(self.tracked_assets) | self._cached_quote_assets)
 
     def backfill_price_history(self) -> None:
         now = utc_now()
@@ -146,45 +164,58 @@ class CollectorService:
         if skipped:
             self.log.info("spot_klines_backfill_skipped already_recent=%d/%d", skipped, total)
 
+    def _poll_price_single(self, symbol: str, asset: str, now: datetime) -> None:
+        candles = self.adapter.fetch_spot_klines(
+            symbol=symbol,
+            interval=self.settings.price_kline_interval,
+            start_time=now - timedelta(hours=12),
+            end_time=now,
+            limit=200,
+        )
+        self.db.insert_spot_klines(candles)
+        try:
+            payload = self.adapter.fetch_price_index(symbol=symbol)
+            price = to_decimal(payload.get("price"))
+            row = {
+                "collected_at": now,
+                "endpoint": "/sapi/v1/margin/priceIndex",
+                "asset": asset,
+                "symbol": symbol,
+                "request_params": json.dumps({"symbol": symbol}),
+                "raw_payload": json.dumps(payload, sort_keys=True, default=str),
+                "parsed_payload": json.dumps(payload, sort_keys=True, default=str),
+                "price": price,
+                "unique_key": json_fingerprint({"symbol": symbol, "collected_at": now.isoformat(), "price": str(price)}),
+            }
+            self.db.upsert_price_index([row])
+        except BinancePermissionError:
+            self.log.warning("price_index_permission_missing symbol=%s", symbol)
+        except Exception as exc:
+            self.log.warning("price_index_failed symbol=%s error=%s", symbol, exc)
+
     def poll_prices(self) -> None:
         now = utc_now()
-        for symbol, asset in self.tracked_symbols.items():
-            candles = self.adapter.fetch_spot_klines(
-                symbol=symbol,
-                interval=self.settings.price_kline_interval,
-                start_time=now - timedelta(hours=12),
-                end_time=now,
-                limit=200,
-            )
-            self.db.insert_spot_klines(candles)
-            try:
-                payload = self.adapter.fetch_price_index(symbol=symbol)
-                price = to_decimal(payload.get("price"))
-                row = {
-                    "collected_at": now,
-                    "endpoint": "/sapi/v1/margin/priceIndex",
-                    "asset": asset,
-                    "symbol": symbol,
-                    "request_params": json.dumps({"symbol": symbol}),
-                    "raw_payload": json.dumps(payload, sort_keys=True, default=str),
-                    "parsed_payload": json.dumps(payload, sort_keys=True, default=str),
-                    "price": price,
-                    "unique_key": json_fingerprint({"symbol": symbol, "collected_at": now.isoformat(), "price": str(price)}),
-                }
-                self.db.upsert_price_index([row])
-            except BinancePermissionError:
-                self.log.warning("price_index_permission_missing symbol=%s", symbol)
-            except Exception as exc:
-                self.log.warning("price_index_failed symbol=%s error=%s", symbol, exc)
-            try:
-                self.compute_derived_metrics(asset=asset, symbol=symbol)
-            except Exception as exc:
-                self.log.warning("derived_metrics_failed asset=%s symbol=%s error=%s", asset, symbol, exc)
+        items = list(self.tracked_symbols.items())
+        workers = min(10, len(items))
+        failed = 0
+        with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="poll_price") as pool:
+            futures = {
+                pool.submit(self._poll_price_single, symbol, asset, now): symbol
+                for symbol, asset in items
+            }
+            for future in as_completed(futures):
+                symbol = futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    failed += 1
+                    self.log.warning("poll_price_worker_failed symbol=%s error=%s", symbol, exc)
+        self.log.info("poll_prices_done total=%d failed=%d", len(items), failed)
 
     def poll_available_inventory(self) -> None:
         now = utc_now()
         try:
-            payload_rows = self.adapter.fetch_available_inventory(assets=self.tracked_assets)
+            payload_rows = self.adapter.fetch_available_inventory(assets=self.all_inventory_assets)
         except BinancePermissionError:
             self.log.warning("margin_available_inventory_permission_missing")
             return
@@ -217,13 +248,31 @@ class CollectorService:
                 }
             )
         self.db.upsert_available_inventory(rows)
+        asset_symbol_pairs = []
+        quote_assets = self._cached_quote_assets
         for asset in {row["asset"] for row in rows if row.get("asset")}:
-            symbol = next((s for s, a in self.tracked_symbols.items() if a == asset), None)
-            if symbol:
-                try:
-                    self.compute_derived_metrics(asset=asset, symbol=symbol)
-                except Exception as exc:
-                    self.log.warning("derived_metrics_failed asset=%s symbol=%s error=%s", asset, symbol, exc)
+            if asset in quote_assets:
+                symbol = next((s for s, a in self.tracked_symbols.items()
+                               if s.endswith(asset)), None)
+                if symbol:
+                    asset_symbol_pairs.append((asset, symbol))
+            else:
+                symbol = next((s for s, a in self.tracked_symbols.items() if a == asset), None)
+                if symbol:
+                    asset_symbol_pairs.append((asset, symbol))
+        if asset_symbol_pairs:
+            workers = min(10, len(asset_symbol_pairs))
+            with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="inv_derived") as pool:
+                futures = {
+                    pool.submit(self.compute_derived_metrics, asset=asset, symbol=symbol): (asset, symbol)
+                    for asset, symbol in asset_symbol_pairs
+                }
+                for future in as_completed(futures):
+                    a, s = futures[future]
+                    try:
+                        future.result()
+                    except Exception as exc:
+                        self.log.warning("derived_metrics_failed asset=%s symbol=%s error=%s", a, s, exc)
         self.log.info("available_inventory_polled assets=%d rows=%s", len(self.tracked_assets), len(rows))
         try:
             self.check_inventory_drops()
@@ -487,6 +536,21 @@ class CollectorService:
             )
         self.db.upsert_isolated_tiers(rows)
         self.log.info("isolated_tiers_polled rows=%s", len(rows))
+        by_symbol: dict[str, list[dict[str, Any]]] = {}
+        for row in rows:
+            sym = row.get("symbol") or ""
+            if sym:
+                by_symbol.setdefault(sym, []).append(row)
+        capacity_metrics: list[dict[str, Any]] = []
+        for sym, sym_rows in by_symbol.items():
+            sym_asset = sym_rows[0].get("asset")
+            if sym_asset:
+                capacity_metrics.extend(
+                    compute_isolated_capacity(sym_rows, symbol=sym, asset=sym_asset, collected_at=collected_at)
+                )
+        if capacity_metrics:
+            self.db.upsert_derived_metrics(capacity_metrics)
+            self.log.info("isolated_capacity_metrics_computed count=%s", len(capacity_metrics))
 
     def _poll_cross_collateral(self, collected_at: datetime) -> None:
         payloads = self.adapter.fetch_cross_margin_collateral_ratios()
@@ -667,7 +731,9 @@ class CollectorService:
             corr_7d_points=self._corr_7d_points,
         )
         if derived_rows:
-            self.db.upsert_derived_metrics(derived_rows)
+            cutoff = utc_now() - timedelta(hours=1)
+            recent_rows = [r for r in derived_rows if r["collected_at"] >= cutoff]
+            self.db.upsert_derived_metrics(recent_rows if recent_rows else derived_rows[-10:])
             latest_stress = next((row for row in reversed(derived_rows) if row["metric_name"] == "stress_proxy_zinv"), None)
             regime = infer_stress_regime(None if latest_stress is None else latest_stress["metric_value"])
             self.db.upsert_derived_metrics(

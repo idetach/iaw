@@ -3,6 +3,7 @@ set -e
 
 # Copy provisioning templates to Grafana's writable provisioning dir
 cp -r /opt/provisioning-tpl/* /etc/grafana/provisioning/ 2>/dev/null || true
+find /etc/grafana/provisioning -name '._*' -delete 2>/dev/null || true
 
 # Template alerts.yaml – wrap chatid in quotes so YAML→JSON keeps it as a string
 ALERTS=/etc/grafana/provisioning/alerting/alerts.yaml

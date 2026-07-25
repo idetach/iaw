@@ -39,10 +39,12 @@ def compute_rolling_correlation(
     inventory_series: pd.Series,
     *,
     points: int,
+    min_periods: int | None = None,
 ) -> pd.Series:
     price_returns = compute_returns(price_series)
     inventory_changes = compute_inventory_change(inventory_series)
-    return price_returns.rolling(window=points, min_periods=points).corr(inventory_changes)
+    _min = min_periods if min_periods is not None else points
+    return price_returns.rolling(window=points, min_periods=_min).corr(inventory_changes)
 
 
 def infer_stress_regime(value: float | None) -> str:
@@ -53,6 +55,48 @@ def infer_stress_regime(value: float | None) -> str:
     if value >= 0.5:
         return "medium"
     return "low"
+
+
+def compute_isolated_capacity(
+    tier_rows: list[dict[str, Any]],
+    *,
+    symbol: str,
+    asset: str,
+    collected_at: datetime,
+) -> list[dict[str, Any]]:
+    """
+    From isolated margin tier rows for one symbol, derive capacity metrics using the highest tier.
+    Produces isolated_base_capacity and isolated_quote_capacity in derived_metrics.
+    """
+    if not tier_rows:
+        return []
+    max_row = max(tier_rows, key=lambda r: int(r.get("tier") or 0))
+    base_cap = max_row.get("base_asset_max_borrowable")
+    quote_cap = max_row.get("quote_asset_max_borrowable")
+    tier_num = max_row.get("tier")
+    window = f"tier_{tier_num}"
+    metrics: list[dict[str, Any]] = []
+    if base_cap is not None:
+        metrics.append({
+            "collected_at": collected_at,
+            "asset": asset,
+            "symbol": symbol,
+            "metric_name": "isolated_base_capacity",
+            "metric_value": float(base_cap),
+            "window_label": window,
+            "metadata": {"tier": tier_num, "field": "baseAssetMaxBorrowable"},
+        })
+    if quote_cap is not None:
+        metrics.append({
+            "collected_at": collected_at,
+            "asset": asset,
+            "symbol": symbol,
+            "metric_name": "isolated_quote_capacity",
+            "metric_value": float(quote_cap),
+            "window_label": window,
+            "metadata": {"tier": tier_num, "field": "quoteAssetMaxBorrowable"},
+        })
+    return metrics
 
 
 def build_derived_metric_rows(
@@ -72,20 +116,22 @@ def build_derived_metric_rows(
     frame["close_price"] = frame["close_price"].astype(float)
 
     stress = compute_stress_proxy(frame["available_inventory"])
+    corr_24h_min_periods = max(3, corr_24h_points // 4)
+    corr_7d_min_periods = max(3, corr_7d_points // 4)
     corr_24h = compute_rolling_correlation(
         frame["close_price"],
         frame["available_inventory"],
         points=corr_24h_points,
+        min_periods=corr_24h_min_periods,
     )
     corr_7d = compute_rolling_correlation(
         frame["close_price"],
         frame["available_inventory"],
         points=corr_7d_points,
+        min_periods=corr_7d_min_periods,
     )
     normalized_price = compute_normalized_to_100(frame["close_price"])
     normalized_inventory = compute_normalized_to_100(frame["available_inventory"])
-    corr_24h_min_periods = max(3, corr_24h_points // 4)
-    corr_7d_min_periods = max(3, corr_7d_points // 4)
 
     rows: list[dict[str, Any]] = []
     for idx, collected_at in enumerate(frame["collected_at"]):

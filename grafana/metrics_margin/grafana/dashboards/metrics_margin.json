@@ -37,219 +37,1610 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
   "id": null,
-  "links": [{"asDropdown": false, "icon": "apps", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "Stacked View", "tooltip": "Switch to full-width stacked layout", "type": "link", "url": "/d/metrics-margin-stacked"}, {"asDropdown": false, "icon": "sun", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "High Contrast", "tooltip": "Switch to light theme for high contrast lines", "type": "link", "url": "/d/metrics-margin-main?theme=light"}, {"asDropdown": false, "icon": "graph-bar", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "Flow", "tooltip": "Price, Inventory, Borrow/Repay, Buy/Sell view", "type": "link", "url": "/d/metrics-margin-pibrbs"}],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "apps",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Stacked View",
+      "tooltip": "Switch to full-width stacked layout",
+      "type": "link",
+      "url": "/d/metrics-margin-stacked"
+    },
+    {
+      "asDropdown": false,
+      "icon": "sun",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "High Contrast",
+      "tooltip": "Switch to light theme for high contrast lines",
+      "type": "link",
+      "url": "/d/metrics-margin-main?theme=light"
+    },
+    {
+      "asDropdown": false,
+      "icon": "graph-bar",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Flow",
+      "tooltip": "Price, Inventory, Borrow/Repay, Buy/Sell view",
+      "type": "link",
+      "url": "/d/metrics-margin-pibrbs"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "panels": [],
       "title": "Overview",
       "type": "row"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 0}]}, "unit": "currencyUSD"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
       "id": 2,
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT close_time AS time, close::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' ORDER BY close_time", "refId": "A"}],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT close_time AS time, close::double precision AS value FROM spot_klines WHERE symbol = '${symbol:raw}' AND close_time <= NOW() ORDER BY close_time",
+          "refId": "A"
+        }
+      ],
       "title": "Latest Spot Price (${asset:raw})",
       "type": "stat"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 0}]}, "unit": "short"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
       "id": 3,
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at", "refId": "A"}],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at",
+          "refId": "A"
+        }
+      ],
       "title": "Latest Available Inventory",
       "type": "stat"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 0.5}, {"color": "red", "value": 1.5}]}, "unit": "short"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
       "id": 4,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at AS time, metric_value AS value FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_proxy_zinv' ORDER BY collected_at", "refId": "A"}],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at AS time, metric_value AS value FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_proxy_zinv' ORDER BY collected_at",
+          "refId": "A"
+        }
+      ],
       "title": "Current Stress Proxy",
       "type": "stat"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
       "id": 5,
-      "options": {"colorMode": "value", "graphMode": "line", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "WITH latest AS ( SELECT available_inventory::double precision AS current_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at DESC LIMIT 1 ), past AS ( SELECT available_inventory::double precision AS past_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= COALESCE( (SELECT MAX(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= NOW() - INTERVAL '24 hours') /* , (SELECT MIN(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}') */ ) ORDER BY collected_at DESC LIMIT 1 ) SELECT NOW() AS time, (latest.current_value - past.past_value) / NULLIF(past.past_value, 0) AS value FROM latest CROSS JOIN past", "refId": "A"}],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "line",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH latest AS ( SELECT available_inventory::double precision AS current_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at DESC LIMIT 1 ), past AS ( SELECT available_inventory::double precision AS past_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= COALESCE( (SELECT MAX(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= NOW() - INTERVAL '24 hours') /* , (SELECT MIN(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}') */ ) ORDER BY collected_at DESC LIMIT 1 ) SELECT NOW() AS time, (latest.current_value - past.past_value) / NULLIF(past.past_value, 0) AS value FROM latest CROSS JOIN past",
+          "refId": "A"
+        }
+      ],
       "title": "24h Inventory Change %",
       "type": "stat"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
       "id": 6,
-      "options": {"colorMode": "value", "graphMode": "line", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "WITH latest AS ( SELECT available_inventory::double precision AS current_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at DESC LIMIT 1 ), past AS ( SELECT available_inventory::double precision AS past_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= COALESCE( (SELECT MAX(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= NOW() - INTERVAL '7 days') /* , (SELECT MIN(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}') */ ) ORDER BY collected_at DESC LIMIT 1 ) SELECT NOW() AS time, (latest.current_value - past.past_value) / NULLIF(past.past_value, 0) AS value FROM latest CROSS JOIN past", "refId": "A"}],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "line",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH latest AS ( SELECT available_inventory::double precision AS current_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ORDER BY collected_at DESC LIMIT 1 ), past AS ( SELECT available_inventory::double precision AS past_value FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= COALESCE( (SELECT MAX(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND collected_at <= NOW() - INTERVAL '7 days') /* , (SELECT MIN(collected_at) FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}') */ ) ORDER BY collected_at DESC LIMIT 1 ) SELECT NOW() AS time, (latest.current_value - past.past_value) / NULLIF(past.past_value, 0) AS value FROM latest CROSS JOIN past",
+          "refId": "A"
+        }
+      ],
       "title": "7d Inventory Change %",
       "type": "stat"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"options": {"low": {"color": "green", "index": 0, "text": "LOW"}, "medium": {"color": "orange", "index": 1, "text": "MEDIUM"}, "high": {"color": "red", "index": 2, "text": "HIGH"}, "unknown": {"color": "text", "index": 3, "text": "N/A"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "options": {
+                "low": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "LOW"
+                },
+                "medium": {
+                  "color": "orange",
+                  "index": 1,
+                  "text": "MEDIUM"
+                },
+                "high": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "HIGH"
+                },
+                "unknown": {
+                  "color": "text",
+                  "index": 3,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
       "id": 7,
-      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "/value|label/", "values": false}, "textMode": "value"},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at AS time, metadata->>'label' AS value FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_regime' ORDER BY collected_at DESC LIMIT 1", "refId": "A"}],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/value|label/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at AS time, metadata->>'label' AS value FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_regime' ORDER BY collected_at DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
       "title": "Stress Regime",
       "type": "stat"
     },
     {
       "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "id": 8,
       "panels": [],
       "title": "Correlation",
       "type": "row"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 3, "showPoints": "never"}, "unit": "currencyUSD"}, "overrides": []},
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 3,
+            "showPoints": "never"
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
       "id": 9,
-      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"}],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time",
+          "refId": "A"
+        }
+      ],
       "title": "Asset Price",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 3, "showPoints": "never"}, "color": {"fixedColor": "orange", "mode": "fixed"}, "unit": "short"}, "overrides": []},
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 3,
+            "showPoints": "never"
+          },
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
       "id": 10,
-      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "A"}],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        }
+      ],
       "title": "Margin Available Inventory",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "lineWidth": 1, "showPoints": "never", "fillOpacity": 0}, "color": {"fixedColor": "orange", "mode": "fixed"}, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "positive"}, "properties": [{"id": "custom.fillOpacity", "value": 80}]}, {"matcher": {"id": "byName", "options": "negative"}, "properties": [{"id": "custom.fillOpacity", "value": 0}]}]},
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "barWidth": 0.9,
+            "showPoints": "never",
+            "fillOpacity": 80,
+            "stacking": {"mode": "none", "group": "A"},
+            "axisCenteredZero": true,
+            "axisPlacement": "left",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "min": -3,
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.5
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "positive"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 80
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "negative"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 80
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
       "id": 11,
-      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, CASE WHEN metric_value >= 0 THEN metric_value END AS positive, CASE WHEN metric_value < 0 THEN metric_value END AS negative FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_proxy_zinv' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "A"}],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH bucketed AS ( SELECT time_bucket('${inv_interval}', collected_at) AS time, AVG(metric_value) AS val FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'stress_proxy_zinv' AND $__timeFilter(collected_at) GROUP BY 1 ) SELECT time, CASE WHEN val >= 0 THEN val END AS positive, CASE WHEN val < 0 THEN val END AS negative FROM bucketed ORDER BY time",
+          "refId": "A"
+        }
+      ],
       "title": "Inverted Borrow-Pressure Proxy",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}, "min": -1, "max": 1, "unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "corr_24h"}, "properties": [{"id": "color", "value": {"fixedColor": "yellow", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "corr_7d"}, "properties": [{"id": "color", "value": {"fixedColor": "cyan", "mode": "fixed"}}]}]},
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "min": -1,
+          "max": 1,
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "corr_24h"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "corr_7d"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "cyan",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
       "id": 12,
-      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
       "targets": [
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, metric_value AS corr_24h FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'rolling_corr_price_vs_inventory_24h' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "A"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, metric_value AS corr_7d FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'rolling_corr_price_vs_inventory_7d' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "B"}
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS corr_24h FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'rolling_corr_price_vs_inventory_24h' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS corr_7d FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'rolling_corr_price_vs_inventory_7d' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "B"
+        }
       ],
       "title": "Rolling Correlation: Price Returns vs Inventory Changes",
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 10,
+            "axisCenteredZero": true
+          },
+          "color": {
+            "mode": "continuous-BlYlRd"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "directional_stress"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Quote Stress - Base Stress"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH base_inv AS ( SELECT collected_at, available_inventory::double precision AS inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ), quote_inv AS ( SELECT collected_at, available_inventory::double precision AS inv FROM margin_available_inventory_snapshots WHERE asset = '${quote_asset:raw}' ), combined AS ( SELECT b.collected_at, b.inv AS b_inv, q.inv AS q_inv, AVG(b.inv) OVER w AS b_mean, NULLIF(STDDEV(b.inv) OVER w, 0) AS b_std, AVG(q.inv) OVER w AS q_mean, NULLIF(STDDEV(q.inv) OVER w, 0) AS q_std FROM base_inv b JOIN quote_inv q ON b.collected_at = q.collected_at WINDOW w AS (ORDER BY b.collected_at ROWS BETWEEN 287 PRECEDING AND CURRENT ROW) ) SELECT collected_at AS time, COALESCE(-(q_inv - q_mean) / q_std, 0) - COALESCE(-(b_inv - b_mean) / b_std, 0) AS directional_stress FROM combined WHERE $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        }
+      ],
+      "title": "Directional Stress Ratio (+ = Long Bias / Quote Pressure, - = Short Bias / Base Pressure)",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 22},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
       "id": 13,
       "panels": [],
       "title": "Margin Pool Proxy",
       "type": "row"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "normalized_price_100_x10"}, "properties": [{"id": "color", "value": {"fixedColor": "dark-green", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "normalized_inventory_100"}, "properties": [{"id": "color", "value": {"fixedColor": "dark-orange", "mode": "fixed"}}]}]},
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 23},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "normalized_price_100_x10"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "normalized_inventory_100"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
       "id": 14,
-      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
       "targets": [
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, 100 + ((metric_value - 100)) * 10 AS normalized_price_100_x10 FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'normalized_price_100' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "A"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, metric_value AS normalized_inventory_100 FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'normalized_inventory_100' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "B"}
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, 100 + ((metric_value - 100)) * 10 AS normalized_price_100_x10 FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'normalized_price_100' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS normalized_inventory_100 FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'normalized_inventory_100' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "B"
+        }
       ],
       "title": "Normalized Comparison (Base 100)",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineWidth": 2, "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "price"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Price"}, {"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}, {"id": "unit", "value": "currencyUSD"}]}, {"matcher": {"id": "byName", "options": "inventory"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Inventory"}, {"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "borrow_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Borrow Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "purple", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "repay_proxy"}, "properties": [{"id": "custom.axisPlacement", "value": "right"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Repay Δ"}, {"id": "custom.drawStyle", "value": "bars"}, {"id": "custom.fillOpacity", "value": 60}, {"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "buy_sell_pct_change"}, "properties": [{"id": "custom.axisPlacement", "value": "left"}, {"id": "custom.axisColorMode", "value": "series"}, {"id": "custom.axisLabel", "value": "Buy/Sell %"}, {"id": "custom.lineWidth", "value": 1}, {"id": "color", "value": {"fixedColor": "#afafaf", "mode": "fixed"}}]}]},
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 31},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "price"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Price"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "inventory"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Inventory"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "borrow_proxy"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Borrow Δ"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 60
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "repay_proxy"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Repay Δ"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 60
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "buy_sell_log_change"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Buy/Sell LogΔ"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#afafaf",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
       "id": 21,
-      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
       "targets": [
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time", "refId": "A"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at", "refId": "B"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, -GREATEST(0, prev_inv - inv) AS borrow_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "C"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ) SELECT collected_at AS time, GREATEST(0, inv - prev_inv) AS repay_proxy FROM inv WHERE $__timeFilter(collected_at) AND prev_inv IS NOT NULL ORDER BY collected_at", "refId": "D"},
-        {"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "time_series", "rawSql": "WITH ratios AS ( SELECT close_time, CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END AS ratio, LAG( CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END ) OVER (ORDER BY close_time) AS prev_ratio FROM spot_klines WHERE symbol = '${symbol:raw}' ) SELECT close_time AS time, CASE WHEN prev_ratio > 0 THEN ((ratio - prev_ratio) / prev_ratio * 100) ELSE NULL END AS buy_sell_pct_change FROM ratios WHERE $__timeFilter(close_time) ORDER BY close_time", "refId": "E"}
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT close_time AS time, close::double precision AS price FROM spot_klines WHERE symbol = '${symbol:raw}' AND $__timeFilter(close_time) ORDER BY close_time",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH inv AS ( SELECT collected_at, available_inventory::double precision AS inv, LAG(available_inventory::double precision) OVER (ORDER BY collected_at) AS prev_inv FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' ), changes AS ( SELECT collected_at, -GREATEST(0, prev_inv - inv) AS borrow_proxy, GREATEST(0, inv - prev_inv) AS repay_proxy FROM inv WHERE prev_inv IS NOT NULL ), bucketed AS ( SELECT time_bucket('${inv_interval}', collected_at) AS time, SUM(borrow_proxy) AS borrow_proxy, SUM(repay_proxy) AS repay_proxy FROM changes WHERE $__timeFilter(collected_at) GROUP BY 1 ), bounds AS ( SELECT GREATEST(COALESCE(MAX(ABS(borrow_proxy)),0), COALESCE(MAX(repay_proxy),0)) * 1.3 AS mx FROM bucketed ), padding AS ( SELECT $__timeFrom()::timestamp AS time, -mx AS borrow_proxy, mx AS repay_proxy FROM bounds ) SELECT time, borrow_proxy, repay_proxy FROM bucketed UNION ALL SELECT time, borrow_proxy, repay_proxy FROM padding ORDER BY time",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH ratios AS ( SELECT close_time, CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END AS ratio, LAG( CASE WHEN (volume - taker_buy_base_volume) > 0 THEN (taker_buy_base_volume / (volume - taker_buy_base_volume))::double precision ELSE NULL END ) OVER (ORDER BY close_time) AS prev_ratio FROM spot_klines WHERE symbol = '${symbol:raw}' ) SELECT close_time AS time, CASE WHEN prev_ratio > 0 AND ratio > 0 THEN LN(ratio / prev_ratio) * 100 ELSE NULL END AS buy_sell_log_change FROM ratios WHERE $__timeFilter(close_time) ORDER BY close_time",
+          "refId": "D"
+        }
       ],
       "title": "Combined: Price, Inventory, Borrow/Repay Proxy, Buy/Sell Change",
       "type": "timeseries"
     },
     {
       "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 39},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "id": 23,
+      "panels": [],
+      "title": "Isolated vs Cross Coverage",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isolated_base_capacity"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Base Max Borrowable"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": { "dash": [10, 10], "fill": "dash" }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isolated_quote_capacity"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Quote Max Borrowable"
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF9830",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS isolated_base_capacity FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'isolated_base_capacity' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS isolated_quote_capacity FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'isolated_quote_capacity' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "B"
+        }
+      ],
+      "title": "${asset:raw} Isolated Margin Max Borrowable Capacity (Highest Tier)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cross_inventory"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Cross-Margin Pool"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF9830",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "isolated_base_capacity"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "auto"
+              },
+              {
+                "id": "custom.axisColorMode",
+                "value": "series"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Isolated Max Borrowable"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "id": 25,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, available_inventory::double precision AS cross_inventory FROM margin_available_inventory_snapshots WHERE asset = '${asset:raw}' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT collected_at AS time, metric_value AS isolated_base_capacity FROM derived_metrics WHERE symbol = '${symbol:raw}' AND metric_name = 'isolated_base_capacity' AND $__timeFilter(collected_at) ORDER BY collected_at",
+          "refId": "B"
+        }
+      ],
+      "title": "${asset:raw} Cross-Margin Inventory vs Isolated Max Borrowable",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
       "id": 15,
       "panels": [],
       "title": "Risk / Config Tables",
       "type": "row"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 40},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 60
+      },
       "id": 16,
-      "options": {"footer": {"show": false}, "showHeader": true},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at AS time, symbol, price::double precision AS price FROM margin_price_index_snapshots WHERE symbol = '${symbol:raw}' ORDER BY collected_at DESC LIMIT 50", "refId": "A"}],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at AS time, symbol, price::double precision AS price FROM margin_price_index_snapshots WHERE symbol = '${symbol:raw}' ORDER BY collected_at DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
       "title": "Margin Price Index",
       "type": "table"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 40},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 60
+      },
       "id": 17,
-      "options": {"footer": {"show": false}, "showHeader": true},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at, symbol, tier, effective_multiple, initial_risk_ratio, liquidation_risk_ratio, base_asset_max_borrowable, quote_asset_max_borrowable FROM isolated_margin_tier_snapshots WHERE symbol = '${symbol:raw}' ORDER BY collected_at DESC LIMIT 20", "refId": "A"}],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at, symbol, tier, effective_multiple, initial_risk_ratio, liquidation_risk_ratio, base_asset_max_borrowable, quote_asset_max_borrowable FROM isolated_margin_tier_snapshots WHERE symbol = '${symbol:raw}' ORDER BY collected_at DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
       "title": "Isolated Margin Tier",
       "type": "table"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 40},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 60
+      },
       "id": 18,
-      "options": {"footer": {"show": false}, "showHeader": true},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at, asset, collateral_ratio, discount_rate FROM cross_margin_collateral_ratio_snapshots WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}') ORDER BY collected_at DESC LIMIT 50", "refId": "A"}],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at, asset, collateral_ratio, discount_rate FROM cross_margin_collateral_ratio_snapshots WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}') ORDER BY collected_at DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
       "title": "Cross Margin Collateral Ratio",
       "type": "table"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 46},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
       "id": 19,
-      "options": {"footer": {"show": false}, "showHeader": true},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at, asset, liquidation_ratio, warning_ratio FROM risk_based_liquidation_ratio_snapshots WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}') ORDER BY collected_at DESC LIMIT 50", "refId": "A"}],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at, asset, liquidation_ratio, warning_ratio FROM risk_based_liquidation_ratio_snapshots WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}') ORDER BY collected_at DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
       "title": "Risk-Based Liquidation Ratio",
       "type": "table"
     },
     {
-      "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 46},
+      "datasource": {
+        "type": "postgres",
+        "uid": "metrics-margin-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
       "id": 20,
-      "options": {"footer": {"show": false}, "showHeader": true},
-      "targets": [{"datasource": {"type": "postgres", "uid": "metrics-margin-postgres"}, "editorMode": "code", "format": "table", "rawSql": "SELECT collected_at, source_table, event_type, summary FROM config_change_events WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}' OR asset IS NULL) AND ('${symbol:raw}' = '__all' OR symbol = '${symbol:raw}' OR symbol IS NULL) ORDER BY collected_at DESC LIMIT 100", "refId": "A"}],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "metrics-margin-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT collected_at, source_table, event_type, summary FROM config_change_events WHERE ('${asset:raw}' = '__all' OR asset = '${asset:raw}' OR asset IS NULL) AND ('${symbol:raw}' = '__all' OR symbol = '${symbol:raw}' OR symbol IS NULL) ORDER BY collected_at DESC LIMIT 100",
+          "refId": "A"
+        }
+      ],
       "title": "Configuration Change Events",
       "type": "table"
     }
@@ -257,12 +1648,24 @@
   "refresh": "5m",
   "schemaVersion": 39,
   "style": "dark",
-  "tags": ["binance", "margin", "stress", "correlation"],
+  "tags": [
+    "binance",
+    "margin",
+    "stress",
+    "correlation"
+  ],
   "templating": {
     "list": [
       {
-        "current": {"selected": true, "text": "BTC", "value": "BTC"},
-        "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+        "current": {
+          "selected": true,
+          "text": "BTC",
+          "value": "BTC"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "metrics-margin-postgres"
+        },
         "definition": "SELECT DISTINCT base_asset AS __text, base_asset AS __value FROM margin_pairs WHERE is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') UNION SELECT DISTINCT asset, asset FROM margin_available_inventory_snapshots WHERE asset IS NOT NULL ORDER BY 1",
         "includeAll": false,
         "label": "asset",
@@ -274,8 +1677,48 @@
         "type": "query"
       },
       {
-        "current": {"selected": true, "text": "BTCUSDC", "value": "BTCUSDC"},
-        "datasource": {"type": "postgres", "uid": "metrics-margin-postgres"},
+        "current": {
+          "selected": true,
+          "text": "5 min",
+          "value": "5 minutes"
+        },
+        "label": "Interval",
+        "name": "inv_interval",
+        "options": [
+          {
+            "selected": true,
+            "text": "5 min",
+            "value": "5 minutes"
+          },
+          {
+            "selected": false,
+            "text": "15 min",
+            "value": "15 minutes"
+          },
+          {
+            "selected": false,
+            "text": "30 min",
+            "value": "30 minutes"
+          },
+          {
+            "selected": false,
+            "text": "1 hour",
+            "value": "1 hour"
+          }
+        ],
+        "query": "5 min : 5 minutes, 15 min : 15 minutes, 30 min : 30 minutes, 1 hour : 1 hour",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "BTCUSDC",
+          "value": "BTCUSDC"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "metrics-margin-postgres"
+        },
         "definition": "SELECT symbol AS __text, symbol AS __value FROM margin_pairs WHERE base_asset = '$asset' AND is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') ORDER BY quote_asset ASC LIMIT 1",
         "hide": 2,
         "includeAll": false,
@@ -286,10 +1729,56 @@
         "query": "SELECT symbol AS __text, symbol AS __value FROM margin_pairs WHERE base_asset = '$asset' AND is_margin_trade = TRUE AND quote_asset IN ('USDC','USDT','FDUSD') ORDER BY quote_asset ASC LIMIT 1",
         "refresh": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "USDC",
+          "value": "USDC"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "metrics-margin-postgres"
+        },
+        "definition": "SELECT quote_asset AS __text, quote_asset AS __value FROM margin_pairs WHERE symbol = '$symbol' LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "label": "quote_asset",
+        "multi": false,
+        "name": "quote_asset",
+        "options": [],
+        "query": "SELECT quote_asset AS __text, quote_asset AS __value FROM margin_pairs WHERE symbol = '$symbol' LIMIT 1",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "...",
+          "value": "..."
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "metrics-margin-postgres"
+        },
+        "definition": "SELECT 'Price ' || CASE WHEN p IS NULL THEN 'N/A' WHEN p < 60 THEN p::text||'s' ELSE (p/60)::text||':'||LPAD((p%60)::text,2,'0')||'m' END || ' | Inv ' || CASE WHEN i IS NULL THEN 'N/A' WHEN i < 60 THEN i::text||'s' ELSE (i/60)::text||':'||LPAD((i%60)::text,2,'0')||'m' END AS __value FROM (SELECT EXTRACT(EPOCH FROM (NOW()-MAX(close_time)))::integer AS p  FROM spot_klines WHERE symbol='${symbol:raw}' AND close_time>=NOW()-INTERVAL '1 hour') price_lag, (SELECT EXTRACT(EPOCH FROM (NOW()-MAX(collected_at)))::integer AS i  FROM margin_available_inventory_snapshots WHERE asset='${asset:raw}' AND collected_at>=NOW()-INTERVAL '2 hours') inv_lag",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data Lag",
+        "multi": false,
+        "name": "data_lag",
+        "options": [],
+        "query": "SELECT 'Price ' || CASE WHEN p IS NULL THEN 'N/A' WHEN p < 60 THEN p::text||'s' ELSE (p/60)::text||':'||LPAD((p%60)::text,2,'0')||'m' END || ' | Inv ' || CASE WHEN i IS NULL THEN 'N/A' WHEN i < 60 THEN i::text||'s' ELSE (i/60)::text||':'||LPAD((i%60)::text,2,'0')||'m' END AS __value FROM (SELECT EXTRACT(EPOCH FROM (NOW()-MAX(close_time)))::integer AS p  FROM spot_klines WHERE symbol='${symbol:raw}' AND close_time>=NOW()-INTERVAL '1 hour') price_lag, (SELECT EXTRACT(EPOCH FROM (NOW()-MAX(collected_at)))::integer AS i  FROM margin_available_inventory_snapshots WHERE asset='${asset:raw}' AND collected_at>=NOW()-INTERVAL '2 hours') inv_lag",
+        "refresh": 2,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
-  "time": {"from": "now-7d", "to": "now"},
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "metrics_margin - Binance Margin Pool Stress vs Price",

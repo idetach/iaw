@@ -24,11 +24,13 @@ class Settings(BaseSettings):
     tracked_symbols: str = ""
 
     price_poll_seconds: int = 300
-    inventory_poll_seconds: int = 900
+    inventory_poll_seconds: int = 300
     config_poll_seconds: int = 3600
     discover_poll_hours: int = 24
     backfill_hours: int = 168
     price_kline_interval: str = "5m"
+    align_to_candle_close: bool = True
+    fetch_offset_seconds: int = 10
     request_timeout_seconds: float = 20.0
     max_retries: int = 4
     retry_backoff_seconds: float = 1.5

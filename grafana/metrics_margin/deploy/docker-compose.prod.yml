@@ -1,0 +1,41 @@
+# Production overrides — used together with the base docker-compose.yml
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+#
+# Changes from dev:
+#   - Restart policy: always (survives VM reboot via Docker daemon auto-start)
+#   - Collector dev volume mount removed (code baked into image)
+#   - TimescaleDB port 5434 stays mapped but UFW blocks external access
+
+services:
+  timescaledb:
+    restart: always
+
+  collector:
+    restart: always
+    volumes:
+      - ./sql:/app/sql:ro
+
+  grafana:
+    restart: always
+    # Port 3005 still mapped from base compose but UFW blocks it externally.
+    # Caddy on port 80/443 is the public entry point.
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: metrics_margin_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - grafana
+
+volumes:
+  caddy_data:
+  caddy_config:
