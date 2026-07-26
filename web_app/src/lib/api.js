@@ -184,6 +184,15 @@ export const api = {
     // caseId is path-shaped: {date}/{tick_id}/{SYMBOL}
     return conductorRequest(`/v1/cases/${caseId}`)
   },
+  getSchedulerInterval() {
+    return conductorRequest('/v1/admin/scheduler')
+  },
+  setSchedulerInterval(minutes) {
+    return conductorRequest('/v1/admin/scheduler/interval', {
+      method: 'POST',
+      body: JSON.stringify({ minutes }),
+    })
+  },
 }
 
 async function conductorRequest(path, options = {}) {

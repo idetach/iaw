@@ -30,6 +30,7 @@ VARS=(
   MIN_CONFIDENCE
   ORDER_TTL_MINUTES ORDER_MAX_DRIFT_ATR ORDER_RECONCILE_TIMEFRAME
   FRONTEND_CORS_ORIGINS
+  GCP_PROJECT SCHEDULER_LOCATION SCHEDULER_JOB
 )
 
 ENV_YAML="$(mktemp /tmp/conductor-env.XXXXXX.yaml)"
@@ -49,6 +50,12 @@ done
 if ! grep -q '^TICK_INTERVAL_MINUTES:' "$ENV_YAML" >/dev/null 2>&1; then
   echo "TICK_INTERVAL_MINUTES: '0'" >> "$ENV_YAML"
 fi
+
+# Cloud Scheduler admin (ADR-0009): default project/location/job so the UI can
+# change the cloud tick cadence. .env values (added to VARS) win over these.
+grep -q '^GCP_PROJECT:' "$ENV_YAML" || echo "GCP_PROJECT: '$PROJECT'" >> "$ENV_YAML"
+grep -q '^SCHEDULER_LOCATION:' "$ENV_YAML" || echo "SCHEDULER_LOCATION: '$REGION'" >> "$ENV_YAML"
+grep -q '^SCHEDULER_JOB:' "$ENV_YAML" || echo "SCHEDULER_JOB: '${SCHEDULER_JOB:-conductor-tick}'" >> "$ENV_YAML"
 
 echo ">>> building $IMAGE"
 gcloud builds submit "$REPO_ROOT" \
@@ -70,5 +77,18 @@ gcloud run deploy "$SERVICE" \
   --env-vars-file "$ENV_YAML" \
   --set-secrets "ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest" \
   --labels app=iaw,component=conductor
+
+# Allow the conductor to edit its own Cloud Scheduler job from the UI (ADR-0009).
+COND_SA="$(gcloud run services describe "$SERVICE" \
+  --project "$PROJECT" --region "$REGION" \
+  --format='value(spec.template.spec.serviceAccountName)')"
+if [ -z "$COND_SA" ]; then
+  PROJECT_NUMBER="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')"
+  COND_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+fi
+echo ">>> granting $COND_SA roles/cloudscheduler.admin (UI cadence control)"
+gcloud projects add-iam-policy-binding "$PROJECT" \
+  --member="serviceAccount:$COND_SA" \
+  --role="roles/cloudscheduler.admin" >/dev/null
 
 echo ">>> done. Next: ./deploy/setup_scheduler.sh to create the tick cron."

@@ -32,6 +32,9 @@ export default function ConductorTickSettings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [sched, setSched] = useState(null)
+  const [schedMinutes, setSchedMinutes] = useState('')
+  const [schedSaving, setSchedSaving] = useState(false)
 
   const load = useCallback(async () => {
     setError(null)
@@ -46,9 +49,38 @@ export default function ConductorTickSettings() {
     }
   }, [])
 
+  const loadSched = useCallback(async () => {
+    try {
+      const res = await api.getSchedulerInterval()
+      setSched(res)
+      if (res?.interval_minutes != null) setSchedMinutes(String(res.interval_minutes))
+    } catch {
+      setSched({ configured: false })
+    }
+  }, [])
+
   useEffect(() => {
     load()
-  }, [load])
+    loadSched()
+  }, [load, loadSched])
+
+  async function onSaveSched() {
+    const minutes = Number(schedMinutes)
+    if (!Number.isInteger(minutes) || minutes < 1) {
+      toast({ status: 'error', title: 'Enter whole minutes >= 1' })
+      return
+    }
+    setSchedSaving(true)
+    try {
+      const res = await api.setSchedulerInterval(minutes)
+      toast({ status: 'success', title: `Cloud cadence: every ${res.interval_minutes ?? minutes} min` })
+      await loadSched()
+    } catch (err) {
+      toast({ status: 'error', title: 'Scheduler update failed', description: err.message })
+    } finally {
+      setSchedSaving(false)
+    }
+  }
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -286,6 +318,42 @@ export default function ConductorTickSettings() {
           </FormControl>
         </SimpleGrid>
       </Box>
+
+      {/* cloud tick cadence — Cloud Scheduler (ADR-0009) */}
+      {sched?.configured && (
+        <Box>
+          <HStack mb={1}>
+            <Heading size="sm">Cloud tick cadence</Heading>
+            <Badge colorScheme={sched.state === 'ENABLED' ? 'green' : 'yellow'} fontSize="10px">
+              {sched.state?.toLowerCase() || 'scheduler'}
+            </Badge>
+          </HStack>
+          <Text fontSize="xs" color="gray.500" mb={3}>
+            Drives ticks on Cloud Run via Cloud Scheduler ({sched.job}). Editing this updates the
+            scheduler job directly — separate from the local internal ticker above (ADR-0009).
+          </Text>
+          <HStack align="flex-end" spacing={4}>
+            <FormControl maxW="220px">
+              <FormLabel color="gray.400" fontSize="sm">
+                Every N minutes
+              </FormLabel>
+              <Input
+                size="sm"
+                type="number"
+                value={schedMinutes}
+                onChange={(e) => setSchedMinutes(e.target.value)}
+              />
+              <Text fontSize="10px" color="gray.500" mt={1}>
+                current: <Code fontSize="10px">{sched.schedule}</Code>
+                {sched.interval_minutes != null && ` (~${sched.interval_minutes} min)`}
+              </Text>
+            </FormControl>
+            <Button variant="action" size="sm" onClick={onSaveSched} isLoading={schedSaving}>
+              update cadence
+            </Button>
+          </HStack>
+        </Box>
+      )}
 
       {/* guarded risk caps — read-only */}
       <Box>

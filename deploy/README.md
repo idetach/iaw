@@ -6,7 +6,7 @@
 |-------|-----------|-------|
 | Local (simplest) | **Internal ticker** inside the conductor | web_app → Settings → Conductor Tick → "Tick cadence (minutes)". 0 = off. No cron needed. |
 | Local (launchd) | macOS LaunchAgent → `POST /v1/loop/tick` | `cp deploy/local/com.iaw.conductor.tick.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.iaw.conductor.tick.plist` (edit repo path + interval in the plist). Plain crontab alternative: `*/15 * * * * /Users/juril/Developer/iaw/deploy/local/tick.sh` |
-| Cloud (production) | **Cloud Scheduler → Cloud Run** (low budget: scheduler free tier + scale-to-zero; you pay only for tick seconds) | `PROJECT=... REGION=... ./deploy/setup_scheduler.sh` (defaults to every 15 min, OIDC-authenticated invoker SA) |
+| Cloud (production) | **Cloud Scheduler → Cloud Run** (low budget: scheduler free tier + scale-to-zero; you pay only for tick seconds) | `PROJECT=... REGION=... ./deploy/setup_scheduler.sh` (defaults to every 15 min, OIDC-authenticated invoker SA). Change cadence later from web_app → Settings → Conductor Tick → "Cloud tick cadence" (ADR-0009). |
 
 Overlap safety: the conductor holds a tick lock — a tick fired while another
 runs returns 409 / is skipped, on every path (HTTP, SSE, internal ticker).

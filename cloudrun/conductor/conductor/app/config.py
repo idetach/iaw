@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     # Cloud Run and use Cloud Scheduler -> POST /v1/loop/tick instead.
     tick_interval_minutes: float = Field(default=0.0, alias="TICK_INTERVAL_MINUTES")
 
+    # Cloud Scheduler admin (ADR-0009): lets the UI change the cloud tick cadence
+    # by editing the Scheduler job. Requires roles/cloudscheduler.admin on the
+    # conductor's runtime service account. Empty project disables the feature.
+    gcp_project: str = Field(default="", alias="GCP_PROJECT")
+    scheduler_location: str = Field(default="", alias="SCHEDULER_LOCATION")
+    scheduler_job: str = Field(default="conductor-tick", alias="SCHEDULER_JOB")
+
     # Indicator engine
     timeframes: str = Field(default="4h,1h,30m,15m", alias="TIMEFRAMES")
     kline_limit: int = Field(default=200, alias="KLINE_LIMIT")

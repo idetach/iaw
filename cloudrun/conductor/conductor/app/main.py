@@ -13,6 +13,7 @@ from .cases import router as cases_router
 from .config import get_settings
 from .loop import router as loop_router
 from .runtime_settings import load_persisted, router as settings_router
+from .scheduler import router as scheduler_router
 
 _SERVICE_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(dotenv_path=_SERVICE_ROOT / ".env")
@@ -43,6 +44,7 @@ app.add_middleware(
 app.include_router(loop_router)
 app.include_router(cases_router)
 app.include_router(settings_router)
+app.include_router(scheduler_router)
 
 # restore persisted runtime settings (behavioral overrides only, ADR-0006)
 load_persisted(_settings)
