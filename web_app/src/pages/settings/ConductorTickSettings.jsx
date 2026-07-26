@@ -214,7 +214,7 @@ export default function ConductorTickSettings() {
         <Heading size="sm" mb={3}>
           Resting orders & mode
         </Heading>
-        <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
+        <SimpleGrid columns={{ base: 1, md: 5 }} spacing={4}>
           <FormControl>
             <FormLabel color="gray.400" fontSize="sm">
               Order TTL (minutes)
@@ -253,6 +253,20 @@ export default function ConductorTickSettings() {
                 </option>
               ))}
             </Select>
+          </FormControl>
+          <FormControl>
+            <FormLabel color="gray.400" fontSize="sm">
+              Tick cadence (minutes, 0 = off)
+            </FormLabel>
+            <Input
+              size="sm"
+              type="number"
+              value={form.tick_interval_minutes ?? ''}
+              onChange={(e) => set('tick_interval_minutes', e.target.value)}
+            />
+            <Text fontSize="10px" color="gray.500" mt={1}>
+              internal ticker for local runs; on Cloud Run keep 0 and use Cloud Scheduler
+            </Text>
           </FormControl>
           <FormControl>
             <FormLabel color="gray.400" fontSize="sm">

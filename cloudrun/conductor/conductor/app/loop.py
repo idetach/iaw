@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 from typing import Any, AsyncIterator
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from . import gcs, governor, lifecycle, llm, orders as orders_mod, pnl
@@ -37,6 +37,10 @@ from .models import IndicatorSnapshot, PortfolioState, TickResult
 
 router = APIRouter(prefix="/v1/loop", tags=["loop"])
 _log = logging.getLogger("conductor.loop")
+
+# One tick at a time — shared by POST /tick, GET /tick/stream and the internal
+# ticker. Overlapping ticks would double-count portfolio headroom.
+TICK_LOCK = asyncio.Lock()
 
 # Runtime kill-switch override (web_app). None = follow LOOP_ENABLED env.
 # NOTE: in-memory — resets on restart and is per-instance; run Cloud Run with
@@ -60,11 +64,17 @@ async def set_enabled(body: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/status")
 async def status() -> dict[str, Any]:
+    from . import ticker
+
     s = get_settings()
     return {
         "execution_mode": s.execution_mode,
         "loop_enabled": effective_enabled(s),
         "loop_enabled_source": "env" if _runtime_enabled is None else "runtime",
+        "tick_interval_minutes": s.tick_interval_minutes,
+        "tick_in_progress": TICK_LOCK.locked(),
+        "last_internal_tick_at": ticker.last_tick_at,
+        "last_internal_tick_summary": ticker.last_tick_summary,
         "watchlist": s.watchlist_symbols,
         "timeframes": s.timeframes_list,
         "models": {
@@ -388,11 +398,19 @@ def _done_event(started: datetime, s: Settings) -> dict[str, Any]:
 @router.post("/tick")
 async def tick() -> TickResult:
     """Run one tick and return the aggregate result (Cloud Scheduler entrypoint)."""
+    if TICK_LOCK.locked():
+        raise HTTPException(status_code=409, detail="tick already in progress")
     s = get_settings()
     started = datetime.now(timezone.utc)
     result = TickResult(
         started_at=started, finished_at=started, execution_mode=s.execution_mode
     )
+    async with TICK_LOCK:
+        result = await _collect_tick(s, result)
+    return result
+
+
+async def _collect_tick(s: Settings, result: TickResult) -> TickResult:
     async for ev in _tick_events(s):
         kind = ev.get("event")
         if kind == "candidates":
@@ -428,9 +446,14 @@ async def tick_stream() -> StreamingResponse:
     s = get_settings()
 
     async def gen() -> AsyncIterator[str]:
+        if TICK_LOCK.locked():
+            yield f"data: {json.dumps({'event': 'error', 'scope': 'tick', 'message': 'tick already in progress'})}\n\n"
+            yield f"data: {json.dumps({'event': 'done'})}\n\n"
+            return
         try:
-            async for ev in _tick_events(s):
-                yield f"data: {json.dumps(ev, default=str)}\n\n"
+            async with TICK_LOCK:
+                async for ev in _tick_events(s):
+                    yield f"data: {json.dumps(ev, default=str)}\n\n"
         except Exception as exc:
             _log.exception("tick stream failed")
             yield f"data: {json.dumps({'event': 'error', 'scope': 'tick', 'message': str(exc)})}\n\n"

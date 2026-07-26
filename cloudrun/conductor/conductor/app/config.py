@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     radar_enabled: bool = Field(default=True, alias="RADAR_ENABLED")
     max_candidates_per_tick: int = Field(default=6, alias="MAX_CANDIDATES_PER_TICK")
 
+    # Internal ticker: >0 = self-tick every N minutes (local/dev). Keep 0 on
+    # Cloud Run and use Cloud Scheduler -> POST /v1/loop/tick instead.
+    tick_interval_minutes: float = Field(default=0.0, alias="TICK_INTERVAL_MINUTES")
+
     # Indicator engine
     timeframes: str = Field(default="4h,1h,30m,15m", alias="TIMEFRAMES")
     kline_limit: int = Field(default=200, alias="KLINE_LIMIT")

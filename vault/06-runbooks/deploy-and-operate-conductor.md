@@ -15,11 +15,24 @@ status: draft
 without completing the go-live checklist below.
 
 ## Deploy (demo)
-1. Ensure `bybit_trading` is deployed and reachable; Bybit demo credentials set.
-2. Set env: `EXECUTION_MODE=demo`, `GCS_BUCKET`, `CASES_PREFIX`,
-   `BYBIT_TRADING_URL`, risk-governor params, model IDs (Opus 5 / Fable 5).
-3. `gcloud run deploy conductor --source . --region <region>`.
-4. Verify `/health` and `/v1/config`; confirm mode = demo.
+Scripted — see `deploy/README.md`:
+
+1. Secrets to Secret Manager (`ANTHROPIC_API_KEY`, `BYBIT_API_KEY/SECRET`).
+2. `PROJECT=... REGION=... ./deploy/deploy_bybit_trading.sh` (carries `BYBIT_DEMO`).
+3. Point `BYBIT_TRADING_URL` at the printed URL; `./deploy/deploy_conductor.sh`
+   (carries models, cases-auto, order-reconciliation and risk vars;
+   forces `TICK_INTERVAL_MINUTES=0` and `--max-instances 1`).
+4. `./deploy/setup_scheduler.sh` — Cloud Scheduler → `POST /v1/loop/tick`
+   every 15 min via OIDC invoker SA (low budget: scheduler free tier +
+   scale-to-zero conductor).
+5. `./deploy/deploy_web_app.sh` after setting `VITE_*` URLs (build-time).
+6. Verify `/health`, `/v1/config`, `/v1/loop/status`; confirm mode = demo.
+
+## Tick cadence (local testing)
+Use the **internal ticker**: Settings → Conductor Tick → "Tick cadence
+(minutes)" (0 = off). Alternative: launchd plist / crontab in `deploy/local/`.
+A tick lock prevents overlap on every path (HTTP 409 / SSE busy event /
+ticker skip).
 
 ## Operate
 - **Start/stop loop**: scheduler trigger (Cloud Scheduler) or the kill switch.

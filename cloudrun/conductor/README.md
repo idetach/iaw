@@ -63,7 +63,10 @@ gcloud run deploy conductor \
   --set-secrets ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest
 ```
 
-Drive the loop with Cloud Scheduler → `POST /v1/loop/tick` every 5–15 minutes.
+Drive the loop with Cloud Scheduler → `POST /v1/loop/tick` every 5–15 minutes
+(`deploy/setup_scheduler.sh`). Locally, set `TICK_INTERVAL_MINUTES` (env or
+Settings UI) to use the built-in ticker instead — 0 disables it. A shared tick
+lock prevents overlapping ticks on all paths (409 on HTTP, skip on ticker).
 
 ## Routes
 

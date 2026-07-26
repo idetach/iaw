@@ -48,6 +48,13 @@ app.include_router(settings_router)
 load_persisted(_settings)
 
 
+@app.on_event("startup")
+async def _start_ticker() -> None:
+    from . import ticker
+
+    ticker.start()
+
+
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     _log.error("Unhandled exception on %s %s: %s", request.method, request.url.path, exc)

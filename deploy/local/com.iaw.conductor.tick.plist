@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd tick cron (preferred over crontab on mac — survives sleep/wake
+  better and is per-user). Install:
+
+    cp deploy/local/com.iaw.conductor.tick.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.iaw.conductor.tick.plist
+
+  Uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.iaw.conductor.tick.plist
+
+  NOTE: edit ProgramArguments path below to your repo checkout.
+  Alternative: skip launchd entirely and set "Tick cadence" in the web_app
+  Settings -> Conductor Tick (internal ticker inside the conductor process).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.iaw.conductor.tick</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/juril/Developer/iaw/deploy/local/tick.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>900</integer><!-- seconds: 900 = every 15 minutes -->
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardErrorPath</key>
+    <string>/tmp/iaw-conductor-tick.err</string>
+</dict>
+</plist>

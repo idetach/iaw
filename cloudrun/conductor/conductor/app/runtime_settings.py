@@ -53,6 +53,7 @@ EDITABLE_FIELDS: dict[str, type] = {
     "order_max_drift_atr": float,
     "order_reconcile_timeframe": str,
     "persist_cases": bool,
+    "tick_interval_minutes": float,  # 0 = internal ticker off (use Cloud Scheduler)
 }
 
 GUARDED_FIELDS = [
@@ -99,6 +100,8 @@ def _validate(field: str, value: Any) -> Any:
         raise HTTPException(status_code=422, detail="min_confidence must be in [0,1]")
     if field in ("order_ttl_minutes", "order_max_drift_atr", "max_candidates_per_tick") and value <= 0:
         raise HTTPException(status_code=422, detail=f"{field} must be > 0")
+    if field == "tick_interval_minutes" and value != 0 and value < 1:
+        raise HTTPException(status_code=422, detail="tick_interval_minutes must be 0 (off) or >= 1")
     return value
 
 

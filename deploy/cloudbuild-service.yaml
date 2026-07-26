@@ -1,0 +1,21 @@
+# Generic single-service image build for the iaw monorepo.
+# Used by deploy/*.sh:
+#   gcloud builds submit --config deploy/cloudbuild-service.yaml \
+#     --substitutions _DOCKERFILE=cloudrun/conductor/Dockerfile,_IMAGE=gcr.io/PROJECT/conductor \
+#     .
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - ${_DOCKERFILE}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
+substitutions:
+  _DOCKERFILE: cloudrun/conductor/Dockerfile
+  _IMAGE: ""
+options:
+  logging: CLOUD_LOGGING_ONLY
