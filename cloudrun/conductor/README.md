@@ -75,6 +75,8 @@ Drive the loop with Cloud Scheduler → `POST /v1/loop/tick` every 5–15 minute
 | POST | `/v1/loop/enabled` | Runtime kill switch: `{"enabled": false}` halts new entries |
 | POST | `/v1/loop/tick` | Run one full tick (idempotent per candle) |
 | GET | `/v1/loop/tick/stream` | Run one tick, streaming per-phase SSE events (live UI) |
+| GET | `/v1/settings` | Runtime settings: editable + guarded (read-only) + model options |
+| PUT | `/v1/settings` | Update whitelisted behavioral settings (persisted to GCS; risk caps and `live` mode rejected — ADR-0006) |
 | GET | `/v1/cases` | List persisted cases from GCS (`limit`/`offset`) |
 | GET | `/v1/cases/{date}/{tick_id}/{symbol}` | Full stored case artifact |
 
@@ -88,7 +90,7 @@ Note: the runtime kill switch is in-memory — run with `--max-instances=1`
 | `EXECUTION_MODE` | `demo` | `shadow` / `demo` / `live` |
 | `LOOP_ENABLED` | `true` | Kill switch for new entries |
 | `BYBIT_TRADING_URL` | `http://localhost:8081` | bybit_trading service |
-| `MODEL_GATE` | `claude-fable-5` | Cheap pre-filter + monitoring tier |
+| `MODEL_GATE` | `claude-sonnet-5` | Cheap pre-filter tier (highest volume; ADR-0005) |
 | `MODEL_SYNTHESIS` | `claude-opus-5` | Entry/exit synthesis tier |
 | `MODEL_REFLECTION` | `claude-opus-5` | Post-trade reflection tier |
 | `WATCHLIST` | `BTCUSDT,ETHUSDT,SOLUSDT` | Base symbols |

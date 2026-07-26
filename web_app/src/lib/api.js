@@ -152,6 +152,12 @@ export const api = {
   conductorTickStreamUrl() {
     return `${CONDUCTOR_URL}/v1/loop/tick/stream`
   },
+  getConductorSettings() {
+    return conductorRequest('/v1/settings')
+  },
+  updateConductorSettings(body) {
+    return conductorRequest('/v1/settings', { method: 'PUT', body: JSON.stringify(body) })
+  },
   listConductorCases({ limit = 30, offset = 0 } = {}) {
     return conductorRequest(`/v1/cases?limit=${limit}&offset=${offset}`)
   },

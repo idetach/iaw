@@ -38,9 +38,10 @@ class Settings(BaseSettings):
     bybit_trading_timeout: float = Field(default=30.0, alias="BYBIT_TRADING_TIMEOUT")
     agent_trading_url: str = Field(default="http://localhost:8082", alias="AGENT_TRADING_URL")
 
-    # Models (ADR-0004)
+    # Models (ADR-0004, tiering revised by ADR-0005: the gate is the highest-
+    # volume, lowest-complexity call — one tier cheaper than synthesis)
     anthropic_api_key: str | None = Field(default=None, alias="ANTHROPIC_API_KEY")
-    model_gate: str = Field(default="claude-fable-5", alias="MODEL_GATE")
+    model_gate: str = Field(default="claude-sonnet-5", alias="MODEL_GATE")
     model_synthesis: str = Field(default="claude-opus-5", alias="MODEL_SYNTHESIS")
     model_reflection: str = Field(default="claude-opus-5", alias="MODEL_REFLECTION")
 

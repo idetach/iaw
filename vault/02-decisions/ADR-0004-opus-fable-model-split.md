@@ -3,6 +3,7 @@ title: "ADR-0004: Two-tier model routing — Fable for cadence, Opus for decisio
 tags: [adr, models, cost]
 status: accepted
 date: 2026-07-25
+superseded-by: partially ADR-0005 (gate tier corrected — Fable is above Opus, so the gate now defaults one tier cheaper)
 ---
 
 # ADR-0004: Opus + Fable model split
