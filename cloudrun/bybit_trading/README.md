@@ -63,7 +63,8 @@ gcloud run deploy bybit-trading \
 |-----|---------|-------------|
 | `BYBIT_API_KEY` | — | API key |
 | `BYBIT_API_SECRET` | — | API secret |
-| `BYBIT_TESTNET` | `false` | Use testnet |
+| `BYBIT_TESTNET` | `false` | Use testnet (mutually exclusive with `BYBIT_DEMO`) |
+| `BYBIT_DEMO` | `false` | Use Bybit demo trading (`api-demo.bybit.com`); needs demo-account API keys |
 | `BYBIT_CATEGORY` | `linear` | `linear` or `inverse` |
 | `FRONTEND_CORS_ORIGINS` | `http://localhost:5173,...` | Comma-separated CORS origins |
 | `RADAR_PRICE_CHANGE_PCT_THRESHOLD` | `3.0` | % move to flag as extreme |

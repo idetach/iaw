@@ -537,6 +537,48 @@ def cancel_order(order_id: str, symbol: str) -> dict[str, Any]:
     return {"ok": True, "orderId": order_id, "raw": resp.get("result", {})}
 
 
+@router.get("/closed-pnl")
+def get_closed_pnl(
+    symbol: str | None = None,
+    start_time_ms: int | None = None,
+    limit: int = 100,
+) -> dict[str, Any]:
+    """
+    Fetch closed-PnL records (realized PnL per closed position), paginated
+    through Bybit's cursor up to 500 records. Used by the conductor for
+    daily/weekly loss breakers and symbol cooldowns.
+    """
+    settings = get_settings()
+    _require_auth(settings)
+    session = get_http_client(settings)
+    category = settings.bybit_category
+
+    records: list[dict[str, Any]] = []
+    cursor: str | None = None
+    try:
+        for _ in range(5):  # up to 5 pages
+            kwargs: dict[str, Any] = {"category": category, "limit": min(limit, 100)}
+            if symbol:
+                kwargs["symbol"] = symbol
+            if start_time_ms:
+                kwargs["startTime"] = start_time_ms
+            if cursor:
+                kwargs["cursor"] = cursor
+            resp = session.get_closed_pnl(**kwargs)
+            _raise_if_bybit_error(resp)
+            result = resp.get("result", {})
+            records.extend(result.get("list", []))
+            cursor = result.get("nextPageCursor") or None
+            if not cursor or len(records) >= 500:
+                break
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Bybit request failed: {exc}")
+
+    return {"records": records, "count": len(records)}
+
+
 @router.get("/balance")
 def get_wallet_balance() -> dict[str, Any]:
     """Fetch unified margin wallet balance (USDT)."""

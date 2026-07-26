@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     bybit_api_key: str = Field(default="", alias="BYBIT_API_KEY")
     bybit_api_secret: str = Field(default="", alias="BYBIT_API_SECRET")
     bybit_testnet: bool = Field(default=False, alias="BYBIT_TESTNET")
+    bybit_demo: bool = Field(
+        default=False,
+        alias="BYBIT_DEMO",
+        description=(
+            "Use Bybit demo trading (api-demo.bybit.com). Requires API keys "
+            "created on a demo account. Mutually exclusive with BYBIT_TESTNET. "
+            "Public market data is mainnet-identical; only auth endpoints differ."
+        ),
+    )
     bybit_category: str = Field(default="linear", alias="BYBIT_CATEGORY")
 
     bybit_trading_token: str = Field(default="", alias="BYBIT_TRADING_TOKEN")

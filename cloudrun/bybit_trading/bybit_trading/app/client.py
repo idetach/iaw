@@ -13,8 +13,12 @@ def build_http_client(settings: Settings) -> HTTP:
     When no credentials are provided a public-only client is returned
     (trading endpoints will raise 401 from Bybit).
     """
+    if settings.bybit_demo and settings.bybit_testnet:
+        raise ValueError("BYBIT_DEMO and BYBIT_TESTNET are mutually exclusive")
     kwargs: dict = {
         "testnet": settings.bybit_testnet,
+        # pybit routes to api-demo.bybit.com when demo=True (ADR-0003).
+        "demo": settings.bybit_demo,
     }
     if settings.has_credentials:
         kwargs["api_key"] = settings.bybit_api_key
@@ -33,7 +37,7 @@ _http_client_key: str | None = None
 
 def get_http_client(settings: Settings) -> HTTP:
     global _http_client, _http_client_key
-    key = f"{settings.bybit_api_key}:{settings.bybit_testnet}"
+    key = f"{settings.bybit_api_key}:{settings.bybit_testnet}:{settings.bybit_demo}"
     if _http_client is None or _http_client_key != key:
         _http_client = build_http_client(settings)
         _http_client_key = key

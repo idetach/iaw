@@ -90,6 +90,7 @@ def get_config() -> JSONResponse:
     return JSONResponse(
         content={
             "testnet": s.bybit_testnet,
+            "demo": s.bybit_demo,
             "category": s.bybit_category,
             "has_credentials": s.has_credentials,
             "radar_thresholds": {
