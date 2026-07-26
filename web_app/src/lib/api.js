@@ -1,6 +1,21 @@
+import { auth as firebaseAuth } from './firebase'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8080'
 const AGENT_TRADING_URL = import.meta.env.VITE_AGENT_TRADING_URL || 'http://127.0.0.1:8082'
 const CONDUCTOR_URL = import.meta.env.VITE_CONDUCTOR_URL || 'http://127.0.0.1:8084'
+
+// The conductor sits behind the iaw-web reverse proxy (ADR-0008): the browser
+// sends the Firebase ID token, the proxy verifies it and swaps in a Google
+// identity token for the private Cloud Run service.
+async function firebaseIdToken() {
+  const user = firebaseAuth?.currentUser
+  if (!user) return ''
+  try {
+    return await user.getIdToken()
+  } catch {
+    return ''
+  }
+}
 
 async function request(path, options = {}) {
   const { timeoutMs: rawTimeoutMs, ...fetchOptions } = options
@@ -149,8 +164,12 @@ export const api = {
   runConductorTick() {
     return conductorRequest('/v1/loop/tick', { method: 'POST', timeoutMs: 300000 })
   },
-  conductorTickStreamUrl() {
-    return `${CONDUCTOR_URL}/v1/loop/tick/stream`
+  async conductorTickStreamUrl() {
+    // EventSource cannot set headers; the proxy accepts the user token as a
+    // query param for SSE (ADR-0008).
+    const token = await firebaseIdToken()
+    const base = `${CONDUCTOR_URL}/v1/loop/tick/stream`
+    return token ? `${base}?access_token=${encodeURIComponent(token)}` : base
   },
   getConductorSettings() {
     return conductorRequest('/v1/settings')
@@ -172,7 +191,12 @@ async function conductorRequest(path, options = {}) {
   const timeoutMs = Number.isFinite(rawTimeoutMs) ? rawTimeoutMs : 15000
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
-  const mergedHeaders = { 'Content-Type': 'application/json', ...(fetchOptions.headers || {}) }
+  const token = await firebaseIdToken()
+  const mergedHeaders = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(fetchOptions.headers || {}),
+  }
   let res
   try {
     res = await fetch(`${CONDUCTOR_URL}${path}`, {

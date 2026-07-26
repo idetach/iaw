@@ -1,0 +1,16 @@
+{
+  "name": "iaw-web-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Static server + authenticated reverse proxy to the private conductor Cloud Run service.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    "google-auth-library": "^9.15.0",
+    "http-proxy": "^1.18.1"
+  }
+}

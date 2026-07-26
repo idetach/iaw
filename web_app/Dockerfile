@@ -29,9 +29,14 @@ RUN npm ci || npm install
 COPY web_app/ ./
 RUN npm run build
 
-FROM nginx:alpine
-COPY web_app/nginx.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=build /app/dist /usr/share/nginx/html
-# nginx docker image substitutes $PORT in templates at startup
+# Runtime: Node static server + authenticated reverse proxy to the private
+# conductor (ADR-0008). CONDUCTOR_URL / FIREBASE_PROJECT_ID are RUNTIME env vars.
+FROM node:22-slim AS runtime
+WORKDIR /app
+COPY web_app/server/package.json web_app/server/package-lock.json* ./
+RUN npm ci --omit=dev || npm install --omit=dev
+COPY web_app/server/server.js ./
+COPY --from=build /app/dist ./dist
 ENV PORT=8080
 EXPOSE 8080
+CMD ["node", "server.js"]

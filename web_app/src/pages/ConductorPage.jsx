@@ -514,12 +514,12 @@ export default function ConductorPage() {
     }
   }
 
-  function onTick() {
+  async function onTick() {
     esRef.current?.close()
     dispatch({ type: 'reset' })
     setActiveSymbol(null)
     if (caseParam) navigate('/conductor', { replace: true })
-    const es = new EventSource(api.conductorTickStreamUrl())
+    const es = new EventSource(await api.conductorTickStreamUrl())
     esRef.current = es
     es.onmessage = (msg) => {
       let payload
