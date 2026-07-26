@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8080'
 const AGENT_TRADING_URL = import.meta.env.VITE_AGENT_TRADING_URL || 'http://127.0.0.1:8082'
+const CONDUCTOR_URL = import.meta.env.VITE_CONDUCTOR_URL || 'http://127.0.0.1:8084'
 
 async function request(path, options = {}) {
   const { timeoutMs: rawTimeoutMs, ...fetchOptions } = options
@@ -130,4 +131,61 @@ export const api = {
   getTradeExecution(caseId) {
     return traderRequest(`/v1/trader/cases/${caseId}/trade`)
   },
+
+  // --- conductor (autonomous loop) ---------------------------------------
+  conductorUrl: CONDUCTOR_URL,
+  getConductorConfig() {
+    return conductorRequest('/v1/config')
+  },
+  getConductorStatus() {
+    return conductorRequest('/v1/loop/status')
+  },
+  setConductorEnabled(enabled) {
+    return conductorRequest('/v1/loop/enabled', {
+      method: 'POST',
+      body: JSON.stringify({ enabled }),
+    })
+  },
+  runConductorTick() {
+    return conductorRequest('/v1/loop/tick', { method: 'POST', timeoutMs: 300000 })
+  },
+  conductorTickStreamUrl() {
+    return `${CONDUCTOR_URL}/v1/loop/tick/stream`
+  },
+  listConductorCases({ limit = 30, offset = 0 } = {}) {
+    return conductorRequest(`/v1/cases?limit=${limit}&offset=${offset}`)
+  },
+  getConductorCase(caseId) {
+    // caseId is path-shaped: {date}/{tick_id}/{SYMBOL}
+    return conductorRequest(`/v1/cases/${caseId}`)
+  },
+}
+
+async function conductorRequest(path, options = {}) {
+  const { timeoutMs: rawTimeoutMs, ...fetchOptions } = options
+  const timeoutMs = Number.isFinite(rawTimeoutMs) ? rawTimeoutMs : 15000
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  const mergedHeaders = { 'Content-Type': 'application/json', ...(fetchOptions.headers || {}) }
+  let res
+  try {
+    res = await fetch(`${CONDUCTOR_URL}${path}`, {
+      ...fetchOptions,
+      headers: mergedHeaders,
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`Conductor request timed out: ${path}`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+  }
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `conductor request failed: ${res.status}`)
+  }
+  if (res.status === 204) return null
+  return res.json()
 }

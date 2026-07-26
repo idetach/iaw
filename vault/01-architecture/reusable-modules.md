@@ -15,7 +15,7 @@ decision ([[ADR-0001-conductor-merge-over-rebuild]]).
 | `bybit_trading` | Bybit v5 API wrapper (market, radar, trade, stream) | **Core execution + market data + monitoring** | Add demo-trading base URL toggle; expose OHLCV klines endpoint for indicator computation |
 | `shared/chart_vision_common` | `TradeProposal` schema | **Unchanged** — autonomous path emits the same object | None (maybe add `source: vision|indicators` field) |
 | `agent_charts_signal` | 2-pass **vision** inference | Reused **only in vision mode**. Autonomous mode uses an indicator-based Pass-2 (text) | New `indicators` provider path; Pass-2 prompt variant for numeric input |
-| `agent_trading` | proposal → qty → order | **Reused**, but upgrade sizing to risk-based (stop-distance) | Add risk-based sizing alongside existing margin×leverage sizing |
+| `agent_trading` | proposal → qty → order | **Bypassed** by the Conductor (governor does risk-based sizing and executes via `bybit_trading` directly) | None — stays for web_app manual trade form |
 | `case_graph_analytics` | Neo4j + embeddings over cases | **Reused as reflection/memory** | Add reflection artifact type; query API for "similar past setups" |
 | `metrics_margin` | market correlation/funding metrics | **Reused by risk governor** for correlation caps | Expose a correlation lookup the governor can call |
 | `mac/agent_charts_screen` | screenshot capture worker | **Not used** by autonomous loop | None — stays for manual vision mode |

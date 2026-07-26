@@ -51,9 +51,16 @@ class MarketDataProvider(Protocol):
 
 - **Phase 1 (now):** implement over **Bybit v5 klines** — already reachable via
   `bybit_trading`; zero new vendor, mainnet data even in demo mode.
-- **Phase 2 (later):** add a dedicated market-data API platform (e.g. a candles/
-  indicators vendor) behind the same interface if we need broader coverage,
-  higher rate limits, or normalized cross-exchange data.
+- **Phase 2 (decided 2026-07-26):** add **CoinGlass API** as a
+  `DerivativesDataProvider` behind the same interface — cross-exchange funding,
+  open interest, liquidations, long/short ratios, and liquidation-heatmap data.
+  This replaces the vision-mode CoinGlass screenshots with structured data.
+  OHLCV stays on Bybit klines; TA computation stays in-house (deterministic,
+  unit-tested). Vendors assessed and deferred: Kaiko/CoinAPI/Coin Metrics
+  (institutional OHLCV — revisit only if we outgrow Bybit klines), TAAPI
+  (pre-computed indicators — redundant with our engine), CryptoQuant/Glassnode
+  (on-chain context — optional later), Arkham (entity intelligence — wrong
+  layer for market data; possible future flow/sentiment input).
 
 ## Why not keep vision for the autonomous path
 

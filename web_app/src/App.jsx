@@ -16,13 +16,15 @@ import CasesPage from './pages/CasesPage'
 import SettingsPage from './pages/SettingsPage'
 import AccountPage from './pages/AccountPage'
 import NewCasePage from './pages/NewCasePage'
+import ConductorPage from './pages/ConductorPage'
 import TopNav from './components/layout/TopNav'
 import Sidebar from './components/layout/Sidebar'
 
 function ProtectedLayout() {
   const selectedCaseId = useAppStore((s) => s.selectedCaseId)
   const location = useLocation()
-  const showSidebar = location.pathname.startsWith('/cases')
+  const showSidebar =
+    location.pathname.startsWith('/cases') || location.pathname.startsWith('/conductor')
 
   return (
     <Flex direction="column" minH="100vh" maxH="100vh" overflow="hidden">
@@ -33,6 +35,7 @@ function ProtectedLayout() {
           <Routes>
             <Route path="/cases" element={<CasesPage />} />
             <Route path="/cases/new" element={<NewCasePage />} />
+            <Route path="/conductor" element={<ConductorPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="*" element={<Navigate to={selectedCaseId ? `/cases?case=${selectedCaseId}` : '/cases'} replace />} />

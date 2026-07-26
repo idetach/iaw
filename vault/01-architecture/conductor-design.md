@@ -2,10 +2,16 @@
 title: Conductor Design
 tags: [architecture, design]
 updated: 2026-07-25
-status: proposed
+status: in-progress   # scaffold implemented at cloudrun/conductor (2026-07-25)
 ---
 
 # Conductor Design
+
+> **Implementation status:** scaffold exists at `cloudrun/conductor/` — indicator
+> engine, risk governor, lifecycle decisions, model routing (claude-fable-5 /
+> claude-opus-5), shadow/demo/live modes, 25 passing unit tests. Remaining TODOs
+> in its README (PnL breaker inputs, cooldowns, case persistence, reflection
+> persistence, Opus escalation).
 
 The **Conductor** is the new orchestration service that turns iaw's existing
 building blocks into a supervised autonomous trader. It is the "manager" in the

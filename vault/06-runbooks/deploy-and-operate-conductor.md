@@ -7,8 +7,8 @@ status: draft
 
 # Runbook: Deploy & operate the Conductor
 
-> Draft — fill in exact commands/regions once the `cloudrun/conductor` service
-> exists. Structure mirrors the other `cloudrun/*` services.
+> The service exists at `cloudrun/conductor/` (see its README for routes and
+> env vars). Fill in region/scheduler specifics at first deploy.
 
 ## Modes
 `EXECUTION_MODE` ∈ `{shadow, demo, live}`. **Default `demo`.** Never set `live`

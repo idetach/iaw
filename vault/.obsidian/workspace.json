@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "01-architecture/system-overview.md",
+                "file": "02-decisions/ADR-0002-direct-market-data-indicators.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "system-overview"
+              "title": "ADR-0002-direct-market-data-indicators"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "01-architecture/system-overview.md",
+                "file": "README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for system-overview"
+              "title": "Backlinks for README"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "01-architecture/system-overview.md",
+                "file": "README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from system-overview"
+              "title": "Outgoing links from README"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "01-architecture/system-overview.md",
+                "file": "README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of system-overview"
+              "title": "Outline of README"
             }
           }
         ]
@@ -185,8 +185,14 @@
   },
   "active": "db02f8e726baddbd",
   "lastOpenFiles": [
+    "02-decisions/ADR-0003-bybit-demo-trading-first.md",
+    "02-decisions/ADR-0004-opus-fable-model-split.md",
+    "02-decisions/ADR-0002-direct-market-data-indicators.md",
+    "02-decisions/ADR-0001-conductor-merge-over-rebuild.md",
+    "README.md",
     "01-architecture/reusable-modules.md",
     "01-architecture/conductor-design.md",
+    "01-architecture/system-overview.md",
     "01-architecture/autonomous-data-path.md"
   ]
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -10,6 +10,31 @@ import {
 } from '@chakra-ui/react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
+import { api } from '../../lib/api'
+
+// Group conductor case items by tick — same group shape as the store's
+// caseGroups ({date, items}) so the rendering below stays identical.
+function tickLabel(tickId, fallbackDate) {
+  // tick-20260726T120000Z-abc123 -> "2026-07-26 12:00Z"
+  const m = /^tick-(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(tickId || '')
+  if (!m) return fallbackDate || tickId || 'unknown'
+  return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}Z`
+}
+
+function groupByTick(items) {
+  const byTick = new Map()
+  for (const item of items || []) {
+    const key = item?.tick_id || 'unknown'
+    if (!byTick.has(key)) byTick.set(key, [])
+    byTick.get(key).push(item)
+  }
+  return [...byTick.entries()]
+    .sort(([a], [b]) => b.localeCompare(a)) // tick ids embed the timestamp
+    .map(([tickId, groupItems]) => ({
+      date: tickLabel(tickId, groupItems[0]?.date),
+      items: groupItems,
+    }))
+}
 
 export default function Sidebar() {
   const sidebarCollapsed = useAppStore((s) => s.sidebarCollapsed)
@@ -28,14 +53,50 @@ export default function Sidebar() {
 
   const isCasesRoute = location.pathname.startsWith('/cases')
   const isCasesPage = location.pathname === '/cases'
+  const isConductorRoute = location.pathname.startsWith('/conductor')
+  const selectedConductorCase = isConductorRoute
+    ? new URLSearchParams(location.search).get('case')
+    : null
 
   const width = sidebarCollapsed ? '58px' : '296px'
 
   const grouped = useMemo(() => caseGroups || [], [caseGroups])
 
+  // --- conductor cases (cases-auto prefix, served by the conductor svc) ----
+  const [conductorCases, setConductorCases] = useState([])
+  const [conductorLoading, setConductorLoading] = useState(false)
+  const [conductorHasMore, setConductorHasMore] = useState(false)
+
+  const loadConductorCases = useCallback(async (offset = 0) => {
+    setConductorLoading(offset === 0)
+    try {
+      const data = await api.listConductorCases({ limit: 30, offset })
+      setConductorCases((prev) =>
+        offset === 0 ? data.items || [] : [...prev, ...(data.items || [])],
+      )
+      setConductorHasMore(Boolean(data.hasMore))
+    } catch {
+      if (offset === 0) setConductorCases([])
+    } finally {
+      setConductorLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isConductorRoute) return undefined
+    loadConductorCases(0)
+    const onTickDone = () => loadConductorCases(0)
+    window.addEventListener('conductor-tick-done', onTickDone)
+    return () => window.removeEventListener('conductor-tick-done', onTickDone)
+  }, [isConductorRoute, loadConductorCases])
+
+  const conductorGrouped = useMemo(() => groupByTick(conductorCases), [conductorCases])
+
   function tradeStateDot(item) {
     const detail = caseDetailsById?.[item.case_id]
-    const hasExecution = Boolean(detail?.trade_execution)
+    // conductor items carry `executed` directly; manual cases use trade_execution
+    const hasExecution =
+      item.executed !== undefined ? Boolean(item.executed) : Boolean(detail?.trade_execution)
     const direction = item.direction || detail?.proposal_validated?.long_short_none
     if (!direction || direction === 'NONE') return null
     const color = direction === 'LONG' ? '#48BB78' : '#FC8181'
@@ -97,7 +158,76 @@ export default function Sidebar() {
       </Flex>
 
       <Box p={2} overflowY="auto" flex="1">
-        {!isCasesRoute ? (
+        {isConductorRoute ? (
+          conductorLoading ? (
+            <HStack px={2} py={3} color="gray.300">
+              <Spinner size="sm" />
+              {!sidebarCollapsed && <Text fontSize="sm">Loading cases...</Text>}
+            </HStack>
+          ) : !conductorGrouped.length ? (
+            <Text fontSize="sm" color="gray.500" px={2}>
+              No conductor cases yet — run a tick.
+            </Text>
+          ) : (
+            <VStack align="stretch" spacing={3}>
+              {conductorGrouped.map((group) => (
+                <Box key={group.date}>
+                  {!sidebarCollapsed && (
+                    <Text fontSize="11px" color="gray.500" px={2} py={1}>
+                      {group.date}
+                    </Text>
+                  )}
+                  <VStack align="stretch" spacing={1}>
+                    {(group.items || []).map((item) => {
+                      const active = selectedConductorCase === item.case_id
+                      return (
+                        <Button
+                          key={item.case_id}
+                          variant="ghostline"
+                          justifyContent={sidebarCollapsed ? 'center' : 'space-between'}
+                          onClick={() =>
+                            navigate(`/conductor?case=${encodeURIComponent(item.case_id)}`)
+                          }
+                          borderColor={active ? 'brand.yellow' : 'brand.border'}
+                          color={active ? 'brand.yellow' : 'brand.white'}
+                          px={sidebarCollapsed ? 0 : 2}
+                        >
+                          {sidebarCollapsed ? (
+                            item.symbol?.slice(0, 1) || '•'
+                          ) : (
+                            <HStack w="full" justify="space-between">
+                              <HStack spacing={2} minW={0} flex="1">
+                                {tradeStateDot(item)}
+                                <Text fontSize="xs" noOfLines={1} fontWeight="600">
+                                  {item.symbol || item.case_id.slice(0, 8)}
+                                </Text>
+                                <Text fontSize="10px" color="gray.500" noOfLines={1}>
+                                  {item.model || '-'}
+                                </Text>
+                              </HStack>
+                              <Text fontSize="10px" color="gray.500" textTransform="lowercase">
+                                {item.status}
+                              </Text>
+                            </HStack>
+                          )}
+                        </Button>
+                      )
+                    })}
+                  </VStack>
+                </Box>
+              ))}
+              {conductorHasMore && !sidebarCollapsed && (
+                <Button
+                  variant="ghostline"
+                  size="sm"
+                  onClick={() => loadConductorCases(conductorCases.length)}
+                >
+                  load next 30
+                </Button>
+              )}
+            </VStack>
+          )
+        ) : !isCasesRoute ? (
           <Text fontSize="sm" color="gray.500" px={2}>
             Open cases page to browse cases.
           </Text>

@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/useAppStore'
 
 const items = [
   { to: '/cases', label: 'cases' },
+  { to: '/conductor', label: 'conductor' },
   { to: '/settings', label: 'settings' },
 ]
 
