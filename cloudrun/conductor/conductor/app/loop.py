@@ -30,6 +30,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from . import gcs, governor, lifecycle, llm, orders as orders_mod, pnl
+from .auth import id_token_for_cloud_run
 from .config import Settings, get_settings
 from .indicators.engine import build_snapshot
 from .market_data import BybitTradingProvider
@@ -480,35 +481,36 @@ async def _snapshot(
     return build_snapshot(symbol, candles_by_tf, ticker)
 
 
-async def _bybit_get(s: Settings, path: str, params: dict | None = None) -> dict[str, Any]:
-    headers = {"Content-Type": "application/json"}
+def _bybit_headers(s: Settings) -> dict[str, str]:
+    h = {"Content-Type": "application/json"}
+    id_token = id_token_for_cloud_run(s.bybit_trading_url)
+    if id_token:
+        h["Authorization"] = f"Bearer {id_token}"
     if s.bybit_trading_token:
-        headers["Authorization"] = f"Bearer {s.bybit_trading_token}"
+        h["X-Internal-Token"] = s.bybit_trading_token
+    return h
+
+
+async def _bybit_get(s: Settings, path: str, params: dict | None = None) -> dict[str, Any]:
     url = f"{s.bybit_trading_url.rstrip('/')}{path}"
     async with httpx.AsyncClient(timeout=httpx.Timeout(s.bybit_trading_timeout, connect=10.0)) as c:
-        resp = await c.get(url, params=params, headers=headers)
+        resp = await c.get(url, params=params, headers=_bybit_headers(s))
         resp.raise_for_status()
         return resp.json()
 
 
 async def _bybit_delete(s: Settings, path: str, params: dict | None = None) -> dict[str, Any]:
-    headers = {"Content-Type": "application/json"}
-    if s.bybit_trading_token:
-        headers["Authorization"] = f"Bearer {s.bybit_trading_token}"
     url = f"{s.bybit_trading_url.rstrip('/')}{path}"
     async with httpx.AsyncClient(timeout=httpx.Timeout(s.bybit_trading_timeout, connect=10.0)) as c:
-        resp = await c.delete(url, params=params, headers=headers)
+        resp = await c.delete(url, params=params, headers=_bybit_headers(s))
         resp.raise_for_status()
         return resp.json()
 
 
 async def _bybit_post(s: Settings, path: str, body: dict) -> dict[str, Any]:
-    headers = {"Content-Type": "application/json"}
-    if s.bybit_trading_token:
-        headers["Authorization"] = f"Bearer {s.bybit_trading_token}"
     url = f"{s.bybit_trading_url.rstrip('/')}{path}"
     async with httpx.AsyncClient(timeout=httpx.Timeout(s.bybit_trading_timeout, connect=10.0)) as c:
-        resp = await c.post(url, json=body, headers=headers)
+        resp = await c.post(url, json=body, headers=_bybit_headers(s))
         resp.raise_for_status()
         return resp.json()
 

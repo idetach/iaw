@@ -58,8 +58,9 @@ async def bearer_token_middleware(request: Request, call_next):
         return await call_next(request)
     if request.url.path in _UNPROTECTED_PATHS:
         return await call_next(request)
-    auth = request.headers.get("Authorization", "")
-    provided = auth.removeprefix("Bearer ").strip()
+    # Cloud Run IAM consumes the Authorization header for identity tokens,
+    # so the shared application token moves to a custom header.
+    provided = request.headers.get("X-Internal-Token", "")
     if not provided or not secrets.compare_digest(provided, token):
         return JSONResponse(status_code=401, content={"error": "unauthorized"})
     return await call_next(request)

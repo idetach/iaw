@@ -14,6 +14,7 @@ from typing import Any, Protocol
 import httpx
 from fastapi import HTTPException
 
+from .auth import id_token_for_cloud_run
 from .config import Settings
 from .models import OHLCV, TIMEFRAME_TO_INTERVAL
 
@@ -31,8 +32,12 @@ class BybitTradingProvider:
 
     def _headers(self) -> dict[str, str]:
         h = {"Content-Type": "application/json"}
+        # Cloud Run IAM uses the Authorization header for identity tokens.
+        id_token = id_token_for_cloud_run(self._settings.bybit_trading_url)
+        if id_token:
+            h["Authorization"] = f"Bearer {id_token}"
         if self._settings.bybit_trading_token:
-            h["Authorization"] = f"Bearer {self._settings.bybit_trading_token}"
+            h["X-Internal-Token"] = self._settings.bybit_trading_token
         return h
 
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
