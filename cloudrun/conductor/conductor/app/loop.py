@@ -114,7 +114,18 @@ async def _tick_events(s: Settings) -> AsyncIterator[dict[str, Any]]:
         "realized_pnl_week_usdt": portfolio.realized_pnl_week_usdt,
         "symbols_on_cooldown": portfolio.symbols_on_cooldown,
         **({"error": portfolio_error, "note": "entries blocked (fail-safe)"} if portfolio_error else {}),
+        **(
+            {"orders_error": portfolio.orders_error, "orders_note": "order reconciliation skipped this tick"}
+            if portfolio.orders_error
+            else {}
+        ),
     }
+    if portfolio.orders_error:
+        yield {
+            "event": "error",
+            "scope": "orders",
+            "message": f"open orders unavailable — reconciliation skipped: {portfolio.orders_error}",
+        }
 
     # --- reconcile resting conductor orders before anything else -------------
     # (a stale entry order is exposure booked at a dead thesis; see orders.py)
@@ -512,6 +523,7 @@ async def _portfolio_state(
         # Resting conductor entry orders (orderLinkId "conductor-*") — claims
         # on future exposure; reconciled and counted against slots/risk.
         open_orders: list[dict[str, Any]] = []
+        orders_error: str | None = None
         try:
             orders_resp = await _bybit_get(s, "/v1/trade/orders")
             open_orders = [
@@ -519,8 +531,15 @@ async def _portfolio_state(
                 for o in (orders_resp.get("orders") or [])
                 if orders_mod.is_conductor_order(o) and not o.get("reduceOnly")
             ]
+        except httpx.HTTPStatusError as exc:
+            orders_error = (
+                f"{exc.response.status_code} from {exc.request.url.path}: "
+                f"{exc.response.text[:200]}"
+            )
+            _log.error("open orders unavailable (reconciliation skipped): %s", orders_error)
         except Exception as exc:
-            _log.warning("open orders unavailable: %s", exc)
+            orders_error = f"{type(exc).__name__}: {exc}"
+            _log.error("open orders unavailable (reconciliation skipped): %s", orders_error)
         open_risk = 0.0
         for p in open_positions:
             entry = float(p.get("avgPrice") or 0)
@@ -551,6 +570,7 @@ async def _portfolio_state(
                 total_margin_used_usdt=margin_used,
                 open_positions=open_positions,
                 open_orders=open_orders,
+                orders_error=orders_error,
                 open_risk_usdt=open_risk,
                 realized_pnl_today_usdt=realized["realized_today"],
                 realized_pnl_week_usdt=realized["realized_week"],

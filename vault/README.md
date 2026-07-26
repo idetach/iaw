@@ -37,6 +37,7 @@ that both humans and coding agents can act with full context.
 - [[ADR-0004-opus-fable-model-split]]
 - [[ADR-0005-three-tier-model-routing]]
 - [[ADR-0006-runtime-settings-governance]]
+- [[ADR-0007-resting-order-reconciliation]]
 
 ### 03 — Strategy
 - [[strategy-spec]] — the multi-timeframe confluence swing strategy

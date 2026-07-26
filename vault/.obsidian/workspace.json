@@ -185,6 +185,7 @@
   },
   "active": "db02f8e726baddbd",
   "lastOpenFiles": [
+    "02-decisions/ADR-0007-resting-order-reconciliation.md",
     "02-decisions/ADR-0006-runtime-settings-governance.md",
     "02-decisions/ADR-0005-three-tier-model-routing.md",
     "02-decisions/ADR-0003-bybit-demo-trading-first.md",

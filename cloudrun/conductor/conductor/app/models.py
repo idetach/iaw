@@ -104,6 +104,7 @@ class PortfolioState(BaseModel):
     total_margin_used_usdt: float = 0.0
     open_positions: list[dict[str, Any]] = Field(default_factory=list)
     open_orders: list[dict[str, Any]] = Field(default_factory=list)  # resting conductor entry orders
+    orders_error: str | None = None  # non-fatal, but must be surfaced in tick output
     open_risk_usdt: float = 0.0  # positions qty*|entry-stop| + resting orders qty*|price-stop|
     realized_pnl_today_usdt: float = 0.0
     realized_pnl_week_usdt: float = 0.0

@@ -193,6 +193,10 @@ def get_open_orders(symbol: str | None = None) -> dict[str, Any]:
         kwargs: dict[str, Any] = {"category": category, "openOnly": 0}
         if symbol:
             kwargs["symbol"] = symbol
+        else:
+            # Bybit v5 realtime orders REQUIRES symbol OR settleCoin for
+            # linear — without it the call errors and callers see no orders.
+            kwargs["settleCoin"] = "USDT"
         resp = session.get_open_orders(**kwargs)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Bybit request failed: {exc}")
