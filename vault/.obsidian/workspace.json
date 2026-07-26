@@ -185,6 +185,8 @@
   },
   "active": "db02f8e726baddbd",
   "lastOpenFiles": [
+    "02-decisions/ADR-0009-ui-controlled-cloud-scheduler-cadence.md",
+    "02-decisions/ADR-0008-cloud-run-service-to-service-auth.md",
     "02-decisions/ADR-0007-resting-order-reconciliation.md",
     "02-decisions/ADR-0006-runtime-settings-governance.md",
     "02-decisions/ADR-0005-three-tier-model-routing.md",
