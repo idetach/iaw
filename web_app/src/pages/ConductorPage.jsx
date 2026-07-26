@@ -79,6 +79,16 @@ function tickReducer(state, ev) {
             portfolio: e,
             errors: e.error ? [...state.errors, `portfolio: ${e.error}`] : state.errors,
           }
+        case 'order':
+          return upsert(
+            state,
+            e.symbol,
+            { source: 'order', stepIndex: STEP_INDEX.managed, rejected: Boolean(e.cancelled) },
+            'managed',
+            {
+              reason: `resting order ${e.action}${e.cancelled ? ' (cancelled)' : ''}: ${e.reason}\n${e.side} ${e.qty} @ ${e.price}`,
+            },
+          )
         case 'lifecycle':
           return upsert(
             state,

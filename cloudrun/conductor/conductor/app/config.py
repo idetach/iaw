@@ -61,6 +61,12 @@ class Settings(BaseSettings):
     max_leverage: float = Field(default=10.0, alias="MAX_LEVERAGE")
     max_margin_percent: float = Field(default=25.0, alias="MAX_MARGIN_PERCENT")
     symbol_cooldown_hours: float = Field(default=4.0, alias="SYMBOL_COOLDOWN_HOURS")
+
+    # Resting-order reconciliation (orders.py): Bybit has no good-till-date,
+    # so the conductor cancels its own stale entry orders each tick.
+    order_ttl_minutes: float = Field(default=120.0, alias="ORDER_TTL_MINUTES")
+    order_max_drift_atr: float = Field(default=2.0, alias="ORDER_MAX_DRIFT_ATR")
+    order_reconcile_timeframe: str = Field(default="1h", alias="ORDER_RECONCILE_TIMEFRAME")
     daily_loss_breaker_fraction: float = Field(default=0.03, alias="DAILY_LOSS_BREAKER_FRACTION")
     weekly_loss_breaker_fraction: float = Field(default=0.06, alias="WEEKLY_LOSS_BREAKER_FRACTION")
     min_confidence: float = Field(default=0.6, alias="MIN_CONFIDENCE")

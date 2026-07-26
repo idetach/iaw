@@ -103,7 +103,8 @@ class PortfolioState(BaseModel):
     equity_usdt: float
     total_margin_used_usdt: float = 0.0
     open_positions: list[dict[str, Any]] = Field(default_factory=list)
-    open_risk_usdt: float = 0.0  # sum over positions of qty * |entry - stop|
+    open_orders: list[dict[str, Any]] = Field(default_factory=list)  # resting conductor entry orders
+    open_risk_usdt: float = 0.0  # positions qty*|entry-stop| + resting orders qty*|price-stop|
     realized_pnl_today_usdt: float = 0.0
     realized_pnl_week_usdt: float = 0.0
     symbols_on_cooldown: list[str] = Field(default_factory=list)
@@ -132,5 +133,7 @@ class TickResult(BaseModel):
     approved: int = 0
     executed: int = 0
     positions_managed: int = 0
+    orders_reconciled: int = 0
+    orders_cancelled: int = 0
     errors: list[str] = Field(default_factory=list)
     detail: list[dict[str, Any]] = Field(default_factory=list)

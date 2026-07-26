@@ -7,6 +7,28 @@ status: proposed
 
 # Position Lifecycle Spec
 
+## Order lifecycle (resting entries) — added 2026-07-26
+
+A resting limit order is a live claim on future exposure whose thesis ages.
+Bybit has no good-till-date, so the Conductor simulates it: every tick, each
+of its own resting orders (`orderLinkId` prefix `conductor-`) is re-checked
+in code (no LLM) and cancelled when any of these hold:
+
+1. **TTL expiry** — older than `ORDER_TTL_MINUTES` (default 120): the entry
+   window has passed.
+2. **Thesis flip** — the reconcile-TF (default 1h) structure now trends
+   *against* the pending entry with `TREND`/`BREAKOUT` regime.
+3. **Price drift** — price is more than `ORDER_MAX_DRIFT_ATR` (default 2) ATRs
+   from the limit: the pullback never came; the order is stale.
+
+Supporting rules: resting orders **occupy position slots** in the governor and
+their at-stop risk counts toward the aggregate risk cap; candidate selection
+excludes any symbol with an open position **or** a surviving resting order
+(one claim per symbol — no stacked entries across ticks, which is exactly the
+failure observed on demo 2026-07-26 with two stacked SOLUSDT shorts).
+Cancellation only ever reduces exposure; a still-valid setup is simply
+re-proposed by a later tick at a fresh level. Manual orders are never touched.
+
 How the Conductor manages a position from fill to close. Runs on the **Fable**
 cadence (cheap, frequent); escalates to **Opus** only for genuine exit-decision
 ambiguity. This is the other half of the value layer alongside the

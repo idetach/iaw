@@ -29,7 +29,7 @@ import httpx
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from . import gcs, governor, lifecycle, llm, pnl
+from . import gcs, governor, lifecycle, llm, orders as orders_mod, pnl
 from .config import Settings, get_settings
 from .indicators.engine import build_snapshot
 from .market_data import BybitTradingProvider
@@ -104,6 +104,10 @@ async def _tick_events(s: Settings) -> AsyncIterator[dict[str, Any]]:
         "event": "portfolio",
         "equity_usdt": portfolio.equity_usdt,
         "open_positions": [p.get("symbol") for p in portfolio.open_positions],
+        "open_orders": [
+            f"{o.get('symbol')} {o.get('side')} {o.get('qty')}@{o.get('price')}"
+            for o in portfolio.open_orders
+        ],
         "margin_used_usdt": portfolio.total_margin_used_usdt,
         "open_risk_usdt": portfolio.open_risk_usdt,
         "realized_pnl_today_usdt": portfolio.realized_pnl_today_usdt,
@@ -111,6 +115,65 @@ async def _tick_events(s: Settings) -> AsyncIterator[dict[str, Any]]:
         "symbols_on_cooldown": portfolio.symbols_on_cooldown,
         **({"error": portfolio_error, "note": "entries blocked (fail-safe)"} if portfolio_error else {}),
     }
+
+    # --- reconcile resting conductor orders before anything else -------------
+    # (a stale entry order is exposure booked at a dead thesis; see orders.py)
+    still_resting: list[dict[str, Any]] = []
+    for order in portfolio.open_orders:
+        symbol = order.get("symbol", "")
+        try:
+            tf_snap = None
+            try:
+                candles = await provider.klines(
+                    symbol, s.order_reconcile_timeframe, s.kline_limit
+                )
+                from .indicators.engine import build_timeframe_snapshot
+
+                tf_snap = build_timeframe_snapshot(s.order_reconcile_timeframe, candles)
+            except Exception as exc:
+                _log.warning("reconcile snapshot failed for %s: %s", symbol, exc)
+
+            verdict = orders_mod.assess_order(
+                order,
+                ttl_minutes=s.order_ttl_minutes,
+                max_drift_atr=s.order_max_drift_atr,
+                tf_snapshot=tf_snap,
+            )
+            cancelled = False
+            if verdict["action"] == "CANCEL" and s.execution_mode != "shadow":
+                await _bybit_delete(
+                    s,
+                    f"/v1/trade/order/{order.get('orderId')}",
+                    params={"symbol": symbol},
+                )
+                cancelled = True
+            if verdict["action"] == "KEEP":
+                still_resting.append(order)
+            yield {
+                "event": "order",
+                "symbol": symbol,
+                "action": verdict["action"],
+                "cancelled": cancelled,
+                "reason": verdict["reason"],
+                "side": order.get("side"),
+                "qty": order.get("qty"),
+                "price": order.get("price"),
+                "order_id": order.get("orderId"),
+            }
+        except Exception as exc:
+            still_resting.append(order)  # keep claim conservative on error
+            yield {"event": "error", "scope": "order", "symbol": symbol, "message": str(exc)}
+    # governor and dedupe see only the orders that survived reconciliation
+    portfolio.open_orders = still_resting
+    portfolio.open_risk_usdt = (
+        sum(orders_mod.order_risk_usdt(o) for o in still_resting)
+        + sum(
+            abs(float(p.get("avgPrice") or 0) - float(p.get("stopLoss") or 0))
+            * float(p.get("size") or 0)
+            for p in portfolio.open_positions
+            if float(p.get("avgPrice") or 0) and float(p.get("stopLoss") or 0)
+        )
+    )
 
     # --- F first: manage existing positions before considering new risk -----
     for pos in portfolio.open_positions:
@@ -151,7 +214,11 @@ async def _tick_events(s: Settings) -> AsyncIterator[dict[str, Any]]:
             candidates += radar_syms
         except Exception as exc:
             yield {"event": "error", "scope": "radar", "message": str(exc)}
-    open_symbols = {p.get("symbol") for p in portfolio.open_positions}
+    # exclude symbols with open positions OR surviving resting orders — one
+    # claim per symbol, never stacked entries across ticks
+    open_symbols = {p.get("symbol") for p in portfolio.open_positions} | {
+        o.get("symbol") for o in portfolio.open_orders
+    }
     candidates = [c for c in dict.fromkeys(candidates) if c not in open_symbols]
     candidates = candidates[: s.max_candidates_per_tick]
     yield {
@@ -329,6 +396,10 @@ async def tick() -> TickResult:
             result.executed += 1
         elif kind == "lifecycle":
             result.positions_managed += 1
+        elif kind == "order":
+            result.orders_reconciled += 1
+            if ev.get("cancelled"):
+                result.orders_cancelled += 1
         elif kind == "error":
             result.errors.append(
                 f"{ev.get('scope', '?')} {ev.get('symbol', '')}: {ev.get('message', '')}".strip()
@@ -386,6 +457,17 @@ async def _bybit_get(s: Settings, path: str, params: dict | None = None) -> dict
         return resp.json()
 
 
+async def _bybit_delete(s: Settings, path: str, params: dict | None = None) -> dict[str, Any]:
+    headers = {"Content-Type": "application/json"}
+    if s.bybit_trading_token:
+        headers["Authorization"] = f"Bearer {s.bybit_trading_token}"
+    url = f"{s.bybit_trading_url.rstrip('/')}{path}"
+    async with httpx.AsyncClient(timeout=httpx.Timeout(s.bybit_trading_timeout, connect=10.0)) as c:
+        resp = await c.delete(url, params=params, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
+
+
 async def _bybit_post(s: Settings, path: str, body: dict) -> dict[str, Any]:
     headers = {"Content-Type": "application/json"}
     if s.bybit_trading_token:
@@ -426,6 +508,19 @@ async def _portfolio_state(
         ).get("list", []) or []
         open_positions = [p for p in positions if float(p.get("size") or 0) > 0]
         margin_used = sum(float(p.get("positionIM") or 0) for p in open_positions)
+
+        # Resting conductor entry orders (orderLinkId "conductor-*") — claims
+        # on future exposure; reconciled and counted against slots/risk.
+        open_orders: list[dict[str, Any]] = []
+        try:
+            orders_resp = await _bybit_get(s, "/v1/trade/orders")
+            open_orders = [
+                o
+                for o in (orders_resp.get("orders") or [])
+                if orders_mod.is_conductor_order(o) and not o.get("reduceOnly")
+            ]
+        except Exception as exc:
+            _log.warning("open orders unavailable: %s", exc)
         open_risk = 0.0
         for p in open_positions:
             entry = float(p.get("avgPrice") or 0)
@@ -433,6 +528,7 @@ async def _portfolio_state(
             size = float(p.get("size") or 0)
             if entry and stop:
                 open_risk += abs(entry - stop) * size
+        open_risk += sum(orders_mod.order_risk_usdt(o) for o in open_orders)
 
         # Realized PnL + cooldowns from closed-pnl (last 7 days). Non-fatal:
         # if unavailable, breakers see 0 and cooldowns are empty, but we log it.
@@ -454,6 +550,7 @@ async def _portfolio_state(
                 equity_usdt=equity,
                 total_margin_used_usdt=margin_used,
                 open_positions=open_positions,
+                open_orders=open_orders,
                 open_risk_usdt=open_risk,
                 realized_pnl_today_usdt=realized["realized_today"],
                 realized_pnl_week_usdt=realized["realized_week"],

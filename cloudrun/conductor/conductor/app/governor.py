@@ -52,7 +52,10 @@ def evaluate(
     if symbol in portfolio.symbols_on_cooldown:
         return _reject("cooldown", audit)
 
-    if len(portfolio.open_positions) >= settings.max_concurrent_positions:
+    # Resting entry orders are claims on future exposure — they occupy slots.
+    slots_used = len(portfolio.open_positions) + len(portfolio.open_orders)
+    if slots_used >= settings.max_concurrent_positions:
+        audit["slots"] = f"{len(portfolio.open_positions)} positions + {len(portfolio.open_orders)} resting orders"
         return _reject("too_many_positions", audit)
 
     entry = _entry_price(proposal)
