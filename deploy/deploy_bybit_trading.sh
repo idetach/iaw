@@ -4,7 +4,7 @@
 # Reads env values from cloudrun/bybit_trading/.env.
 set -euo pipefail
 
-PROJECT="${PROJECT:?set PROJECT=<gcp project id>}"
+PROJECT="${PROJECT:-iawwai}"
 REGION="${REGION:-europe-west1}"
 SERVICE="${SERVICE:-bybit-trading}"
 
@@ -22,10 +22,16 @@ VARS=(
   RADAR_PRICE_CHANGE_PCT_THRESHOLD RADAR_VOLUME_THRESHOLD_USDT RADAR_FUNDING_RATE_THRESHOLD
 )
 
-ENV_ARGS=""
+ENV_YAML="$(mktemp /tmp/bybit-trading-env.XXXXXX.yaml)"
+trap 'rm -f "$ENV_YAML"' EXIT
+
 for v in "${VARS[@]}"; do
   val="${!v:-}"
-  [ -n "$val" ] && ENV_ARGS="${ENV_ARGS}${ENV_ARGS:+,}${v}=${val}"
+  if [ -n "$val" ]; then
+    # YAML single-quoted scalar; escape embedded single quotes
+    val_escaped="${val//\'/\'\'}"
+    echo "$v: '$val_escaped'" >> "$ENV_YAML"
+  fi
 done
 
 IMAGE="gcr.io/$PROJECT/$SERVICE"
@@ -45,7 +51,7 @@ gcloud run deploy "$SERVICE" \
   --min-instances 0 \
   --memory 512Mi \
   --no-allow-unauthenticated \
-  --set-env-vars "$ENV_ARGS" \
+  --env-vars-file "$ENV_YAML" \
   --set-secrets "BYBIT_API_KEY=BYBIT_API_KEY:latest,BYBIT_API_SECRET=BYBIT_API_SECRET:latest" \
   --labels app=iaw,component=bybit-trading
 

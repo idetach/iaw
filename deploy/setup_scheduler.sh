@@ -7,7 +7,7 @@
 #   PROJECT=my-proj REGION=europe-west1 [CRON="*/15 * * * *"] ./deploy/setup_scheduler.sh
 set -euo pipefail
 
-PROJECT="${PROJECT:?set PROJECT=<gcp project id>}"
+PROJECT="${PROJECT:-iawwai}"
 REGION="${REGION:-europe-west1}"
 SERVICE="${SERVICE:-conductor}"
 JOB="${JOB:-conductor-tick}"
@@ -33,6 +33,7 @@ if gcloud scheduler jobs describe "$JOB" --project "$PROJECT" --location "$REGIO
     --uri "$CONDUCTOR_URL/v1/loop/tick" \
     --http-method POST \
     --oidc-service-account-email "$SA_EMAIL" \
+    --oidc-token-audience "$CONDUCTOR_URL" \
     --attempt-deadline 540s
 else
   gcloud scheduler jobs create http "$JOB" \
@@ -41,6 +42,7 @@ else
     --uri "$CONDUCTOR_URL/v1/loop/tick" \
     --http-method POST \
     --oidc-service-account-email "$SA_EMAIL" \
+    --oidc-token-audience "$CONDUCTOR_URL" \
     --attempt-deadline 540s
 fi
 

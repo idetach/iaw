@@ -4,7 +4,7 @@
 # Reads env values from cloudrun/conductor/.env (create from .env.example).
 set -euo pipefail
 
-PROJECT="${PROJECT:?set PROJECT=<gcp project id>}"
+PROJECT="${PROJECT:-iawwai}"
 REGION="${REGION:-europe-west1}"
 SERVICE="${SERVICE:-conductor}"
 IMAGE="gcr.io/$PROJECT/$SERVICE"
@@ -32,16 +32,22 @@ VARS=(
   FRONTEND_CORS_ORIGINS
 )
 
-ENV_ARGS=""
+ENV_YAML="$(mktemp /tmp/conductor-env.XXXXXX.yaml)"
+trap 'rm -f "$ENV_YAML"' EXIT
+
 for v in "${VARS[@]}"; do
   val="${!v:-}"
-  [ -n "$val" ] && ENV_ARGS="${ENV_ARGS}${ENV_ARGS:+,}${v}=${val}"
+  if [ -n "$val" ]; then
+    # YAML single-quoted scalar; escape embedded single quotes
+    val_escaped="${val//\'/\'\'}"
+    echo "$v: '$val_escaped'" >> "$ENV_YAML"
+  fi
 done
 
 # On Cloud Run the internal ticker stays OFF (Cloud Scheduler drives ticks);
 # scale-to-zero would kill a background ticker anyway.
-if [[ "$ENV_ARGS" != *"TICK_INTERVAL_MINUTES"* ]]; then
-  ENV_ARGS="${ENV_ARGS},TICK_INTERVAL_MINUTES=0"
+if ! grep -q '^TICK_INTERVAL_MINUTES:' "$ENV_YAML" >/dev/null 2>&1; then
+  echo "TICK_INTERVAL_MINUTES: '0'" >> "$ENV_YAML"
 fi
 
 echo ">>> building $IMAGE"
@@ -61,7 +67,7 @@ gcloud run deploy "$SERVICE" \
   --memory 512Mi \
   --timeout 600 \
   --no-allow-unauthenticated \
-  --set-env-vars "$ENV_ARGS" \
+  --env-vars-file "$ENV_YAML" \
   --set-secrets "ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest" \
   --labels app=iaw,component=conductor
 
